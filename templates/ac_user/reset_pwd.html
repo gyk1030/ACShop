@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>login</title>
+    <link rel="stylesheet" href="/static/bootstrap-3.3.7-dist.min/css/bootstrap.css">
+    <script src="/static/js/jquery-3.4.1.js"></script>
+    <script src="/static/bootstrap-3.3.7-dist/js/bootstrap.js"></script>
+
+    <style>
+        body {
+            background-color: gainsboro;
+        }
+
+        .box {
+            width: 600px;
+            height: 500px;
+            background-color: #f7f7f7;
+            position: absolute;
+            left: 50%;
+            margin-top: 100px; /* 高度的一半 */
+            margin-left: -350px; /* 宽度的一半 */
+            padding-left: 53px;
+            padding-top: 20px;
+            border-radius: 5px;
+        }
+
+        .form-control {
+            width: 90%;
+            height: 50px;
+            margin-top: 20px;
+        }
+
+        h4 {
+            text-align: center;
+            padding-right: 70px;
+            color: maroon;
+            font-weight: 700;
+        }
+
+        .errors {
+            color: #b30f0b;
+            position: absolute;
+            right: 55px;
+        }
+
+        .success {
+            color: #3c763d;
+            position: absolute;
+            right: 55px;
+        }
+
+        .btn {
+            width: 90%;
+        }
+    </style>
+
+</head>
+<body>
+<form id="form">
+    {% csrf_token %}
+    <div class="box">
+        <h4>修改密码</h4>
+        {% csrf_token %}
+        <input type="email" class="form-control email" required placeholder="请输入邮箱" name="email">
+        <span class="errors email"></span>
+        <input type="password" class="form-control" required placeholder="请输入密码" name="password">
+        <span class="errors password"></span>
+        <input type="password" class="form-control" required placeholder="请重复密码" name="re_pwd">
+        <span class="errors re_pwd"></span>
+        {#        <div class="form-group">#}
+        <div class="row">
+            <div class="col-md-6" style="padding-right: 0">
+                <input style="width: 250px" class="form-control valid_code" required placeholder="输入验证码" name="code">
+            </div>
+            <div class="col-md-6" style="padding-left: 17px">
+                <button type="button" class="form-control" style=" height:50px; width:200px " id="code_btn">点击发送邮件验证码
+                </button>
+            </div>
+        </div>
+        <span class="errors code"></span>
+        <span class="success"></span>
+        <button type="button" class="form-control btn btn-info " id="submit_btn">确   定</button>
+    </div>
+</form>
+</body>
+<script>
+    $("#val_code").click(function () {
+        $("#val_code")[0].src += '?'
+    });
+</script>
+<script>
+
+    // 验证邮箱格式
+    function isPhoneNo(email) {
+        var pattern = /^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/;
+        return pattern.test(email);
+    }
+
+    /*邮箱判断*/
+    function Email_auth(email) {
+        var info = {'stu': 100, 'msg': ''};
+        if (email) {
+            if (isPhoneNo($.trim(email)) == false) {
+                info['stu'] = 101;
+                info['msg'] = '邮箱格式不正确';
+                return info
+            } else {
+                return info
+            }
+        } else {
+            info['stu'] = 101;
+            info['msg'] = '邮箱不能为空';
+            return info
+        }
+    }
+
+    /*发送邮件验证码*/
+    $('#code_btn').click(function () {
+        var formdata = new FormData();
+        var form_data = $("#form").serializeArray();
+        var email = $('.email').val();
+
+        res = Email_auth(email);
+
+        if (res['stu'] == 100) {
+            formdata.append(form_data[0].name, form_data[0].value);
+            formdata.append("email", email);
+            $.ajax({
+                url: '/users/send_email/',
+                type: 'post',
+                processData: false,
+                contentType: false,
+                data: formdata,
+                success: function (data) {
+                    console.log(data);
+                    if (data.stu == 100) {
+                        $(".success").text(data.msg).addClass('has-info');
+                    } else {
+                        $(".code").text(data.msg).addClass('has-info');
+                    }
+                }
+            })
+        } else {
+            $(".code").text(res['msg']).addClass('has-info');
+        }
+        setTimeout(function () {
+            $(".code").html("").parent().removeClass('has-info');
+            $(".success").html("").parent().removeClass('has-info')
+        }, 5000)
+    });
+
+
+    $('#submit_btn').click(function () {
+        var formdata = new FormData();
+        //取到form，调用serializeArray方法，会把form中的所有数据组装起来
+        var form_data = $("#form").serializeArray();
+        {#console.log(form_data);#}
+        //jq提供的for循环,第一个参数是要循环的对象,第二个参数是一个匿名函数
+        $.each(form_data, function (key, value) {
+            {#console.log(value.name, '----', value.value);#}
+            formdata.append(value.name, value.value)
+        });
+        console.log(formdata);
+        $.ajax({
+            url: '/users/reset_pwd/',
+            type: 'post',
+            //上传文件
+            processData: false,
+            contentType: false,
+            data: formdata,
+            success: function (data) {
+                {#console.log(data);#}
+                if (data.status == 100) {
+                    //注册成功,跳转到某个地址
+                    $(".success").text(data.msg).addClass('has-info');
+                    setTimeout(function () {
+                        location.href = data.url
+                    },3000);
+
+                } else {
+
+                    {#console.log(data.errors);#}
+                    //先清除掉上次的错误信息
+                    $(".errors").html("").parent().removeClass('has-info');
+
+                    $.each(data.errors, function (key, value) {
+                        console.log(key);
+                        console.log(value);
+                        if (key == '__all__') {
+                            key = 'code'
+                        }
+                        $("." + key).text(value[0]).addClass('has-info')
+                    });
+                    //设置一个定时器=3s后,清掉所有错误信息
+                    setTimeout(function () {
+                        $(".errors").html("").parent().removeClass('has-info')
+                    }, 5000)
+                }
+
+            }
+
+        })
+
+
+    })
+
+
+</script>
+</html>
+
+

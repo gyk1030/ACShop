@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block css %}
+    <style>
+        .wrapper {width: 900px;height: 500px;margin-top: 100px;margin-left: 200px;}
+        .center, .top, .submit_btn {margin-top: 50px;}
+
+        table {width: 800px;border: 1px solid #313131;border-spacing: 20px;border-top: 2px solid #009688;}
+        th, td {border: 1px solid #353535;height: 30px;}
+        img {border-radius: 10px;}
+
+        .pay_style_con .weixin {background: url(/static/img/pay_icons.png) 6px -36px no-repeat #fff;}
+        .pay_style_con .alipay {background: url(/static/img/pay_icons.png) 12px -72px no-repeat #fff;width: 100px;height: 38px}
+        .pay_style_con .bank {background: url(/static/img/pay_icons.png) 6px -108px no-repeat #fff;}
+
+        .common_list_con {
+            width: 900px;
+            border: 1px solid #dddddd;
+            border-top: 2px solid #009688;
+            margin: 10px auto 0;
+            background-color: #f7f7f7;
+            position: relative;
+        }
+
+        .common_list_con dl {margin: 20px;}
+        .common_list_con dt {font-size: 14px;font-weight: bold;margin-bottom: 10px}
+        .common_list_con dd input {vertical-align: bottom;margin-right: 10px}
+
+        .pay_style_con {margin: 20px;}
+        .pay_style_con input {float: left;margin: 14px 7px 0 0;}
+        .pay_style_con label {
+            float: left;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            padding: 10px 10px 10px 40px;
+            margin-right: 25px
+        }
+    </style>
+{% endblock %}
+
+{% block js %}
+    <script>
+        $('.pay').click(function () {
+            var csrftoken = $("input[name='csrfmiddlewaretoken']").val();
+            var mode = $("input[name='pay_style']:checked").val();
+            params = {
+                'csrfmiddlewaretoken': csrftoken,
+                'order_no': "{{ order_data.order_no }}",
+                'mode': mode,
+            };
+            $.post('/order/order_pay/', params, function (data) {
+                console.log('sdfds');
+                if (data.status == 1) {
+                    window.location.replace(data.url);
+                    {#$.post('/order/chack/', params, function (data) {#}
+                    {#    alert(data.msg);#}
+                        {#if (data.status == 1) {#}
+                        {#    window.location.replace(data.url)#}
+                        {# }else (alert(data.msg))#}
+                    {# })#}
+                 } else {
+                    alert(data.msg)
+                 }
+             });
+        })
+    </script>
+
+    <script>
+        function FreshTime() {
+            var end = "{{ order_data.end_time }}";
+            var endtime = new Date(end);//结束时间
+            var nowtime = new Date();//当前时间
+            var lefttime = parseInt((endtime.getTime() - nowtime.getTime()) / 1000);
+            d = parseInt(lefttime / 3600 / 24);
+            h = parseInt(lefttime / (60 * 60)) % 24;
+            m = parseInt(lefttime / (60)) % 60;
+            s = parseInt(lefttime % 60);
+
+            document.getElementById("LeftTime").innerHTML = m + "分" + s + "秒";
+
+            if (lefttime < 0) {
+                clearInterval(sh);
+                window.location.replace("/order/kill_order/?order_no={{ order_data.order_no }}");
+            }
+        }
+
+        FreshTime();
+        var sh;
+        sh = setInterval(FreshTime, 1000);
+    </script>
+{% endblock %}
+
+{% block content %}
+
+    <div class="wrapper">
+        <div>
+            剩余支付时间：<label type="text" id="LeftTime"></label>
+        </div>
+
+        <div class="top">
+            <h4>订单详情：</h4>
+            <table class="layui-table">
+                <thead>
+                <th>用户</th>
+                <th>订单编号</th>
+                <th>类型</th>
+                <th>单价/元</th>
+                <th>商品数量</th>
+                <th>总价格/元</th>
+                </thead>
+                <tr>
+                    <td>{{ order_data.user.username }}</td>
+                    <td class="no">{{ order_data.order_no }}</td>
+                    <td>{{ order_data.type }}</td>
+                    <td>{{ order_data.price }}</td>
+                    <td>{{ order_data.count }}</td>
+                    <td>{{ order_data.total_price }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="center">
+            <h4>支付方式:</h4>
+            {% csrf_token %}
+            <div class="common_list_con clearfix">
+                <div class="pay_style_con clearfix">
+                    <input type="radio" name="pay_style" id="weixin" value="WEIXIN">
+                    <label for="weixin" class="weixin">微信支付</label>
+                    <input type="radio" name="pay_style" id="alipay" value="ALIPAY">
+                    <label for="alipay" class="alipay"></label>
+                    <input type="radio" name="pay_style" id="bank" value="BANK">
+                    <label for="bank" class="bank">银行卡支付</label>
+                </div>
+            </div>
+
+            <div class="submit_btn">
+                <button class="layui-btn pay" type="button">立即购买</button>
+                <span class="error"></span>
+            </div>
+        </div>
+    </div>
+
+
+
+{% endblock %}

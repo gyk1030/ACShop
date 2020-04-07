@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+{% if Success %}
+    <h3>支付完成！</h3>
+{% elif Failure %}
+    <h3>支付失败！</h3>
+{% endif %}
+<a href="/order/order_detail/?order_no={{ order_no }}">查看订单详情</a>
+</body>
+</html>

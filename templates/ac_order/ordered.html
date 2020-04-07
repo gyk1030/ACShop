@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block content %}
+
+
+    <table class="layui-hide" id="test" lay-filter="test"></table>
+
+    <!-- 定义头部工具栏 -->
+    <script type="text/html" id="toolbarDemo">
+        <div class="layui-btn-container">
+            <button class="layui-btn layui-btn-sm" lay-event="getCheckData">获取选中行数据</button>
+            <button class="layui-btn layui-btn-sm" lay-event="getCheckLength">获取选中数目</button>
+            <button class="layui-btn layui-btn-sm" lay-event="isAll">验证是否全选</button>
+        </div>
+    </script>
+
+    <!-- 定义操作栏功能 -->
+    <script type="text/html" id="barDemo">
+        <a class="layui-btn layui-btn-xs" lay-event="detail">详情</a>
+        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+    </script>
+
+    <script>
+        layui.use('table', function () {
+            var table = layui.table;
+
+            table.render({
+                elem: '#test'  //渲染的目标对象
+                , url: '//127.0.0.1:8000/order/order_info/'  //数据接口
+                , toolbar: '#toolbarDemo' //开启头部工具栏，并为其绑定左侧模板
+                , defaultToolbar: ['filter', 'print',]
+                , title: '用户数据表'  //数据导出时的标题
+                , cols: [[
+                    {type: 'checkbox', fixed: 'left'}
+                    , {field: 'id', title: '序号', width: 80, fixed: 'left', unresize: true, sort: true}
+                    , {field: 'order_no', title: '订单号', width: 120}
+                    , {field: 'price', title: '单价/元', width: 150}
+                    , {field: 'count', title: '数量', width: 80, sort: true}
+                    , {field: 'total_price', title: '总价格/元', width: 100}
+                    , {field: 'add_time', title: '生成时间'}
+                    , {field: 'trade_status', title: '状态', width: 80, sort: true}
+                    , {field: 'trade_type', title: '支付方式', width: 120}
+                    , {field: 'trade_no', title: '交易号', width: 100, sort: true}
+                    , {fixed: 'right', title: '操作', toolbar: '#barDemo', width: 150}
+                ]]
+                , page: true
+            });
+
+            //头工具栏事件
+            table.on('toolbar(test)', function (obj) {
+                var checkStatus = table.checkStatus(obj.config.id);
+                switch (obj.event) {
+                    case 'getCheckData':
+                        var data = checkStatus.data;
+                        layer.alert(JSON.stringify(data));
+                        break;
+                    case 'getCheckLength':
+                        var data = checkStatus.data;
+                        layer.msg('选中了：' + data.length + ' 个');
+                        break;
+                    case 'isAll':
+                        layer.msg(checkStatus.isAll ? '全选' : '未全选');
+                        break;
+
+                    //自定义头工具栏右侧图标 - 提示
+                    case 'LAYTABLE_TIPS':
+                        layer.alert('这是工具栏右侧自定义的一个图标按钮');
+                        break;
+                }
+            });
+
+
+            //监听行工具事件
+            table.on('tool(test)', function (obj) {
+                var data = obj.data;
+                if (obj.event === 'detail') {
+                    {#console.log(data);#}
+                    window.location.href = "/order/order_detail/?order_no=" + data.order_no;
+                }
+                if (obj.event === 'del') {
+                    layer.confirm('确定要删除吗？', function (index) {
+                        obj.del();
+                        layer.close(index);
+                    });
+                }
+
+            });
+        });
+    </script>
+
+
+{% endblock content %}

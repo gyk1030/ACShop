@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{#{% load static %}#}
+{% block css %}
+    <style>
+        .content-up {
+            width: 100%;
+            height: 100px;
+        }
+
+        .content-down {
+            width: 100%;
+            height: 300px;
+            font-size: 15px;
+        }
+
+        .media {
+            width: 550px;
+            height: 200px;
+            float: left;
+            border-color: #828582;
+            border-style: solid;
+            border-width: 1px;
+            margin: 30px 40px 30px 40px;
+        }
+
+        .pagenation {
+            width: 400px;
+            height: 35px;
+        }
+
+        .pagenation {
+            height: 30px;
+            text-align: center;
+            font-size: 0;
+            margin: 30px auto;
+        }
+
+        .pagenation a {
+            display: inline-block;
+            border: 1px solid #d2d2d2;
+            background-color: #f8f6f7;
+            font-size: 12px;
+            padding: 7px 12px;
+            color: #666;
+            margin: 5px
+        }
+
+        .pagenation .active {
+            background-color: #009688;
+            color: #ffffff
+        }
+
+    </style>
+{% endblock css %}
+
+{% block js %}
+
+{% endblock js %}
+
+{% block content %}
+    <div class="content-up">
+        <h3>公告：所有账号一经出售，概不退换</h3>
+        <h4>大家都知道了吧</h4>
+        删掉即可翻山倒海乐和乐都实际开发函数零点丢返回
+        水电费了就好了圣诞节更合适的科技感哈伦裤
+    </div>
+    <div class="content-down">
+        {% for goods in goods_list %}
+            <div style="width: 50px;"></div>
+            <div class="media">
+                <div class="media-left">
+{#                    <a href="#">#}
+{#                        <img class="media-object" src="/media/{{ goods.avatar }}" height=200 width=200>#}
+{#                    </a>#}
+                    <div class="layui-carousel" id="{{ goods.type_id }}">
+                        <div carousel-item style=" height:200px;width:200px">
+                            {{ goods.type_id }}
+                            <div><img class="media-object" src="/media/{{ goods.avatar }}" width=100% height=100%></div>
+                            <div><img class="media-object" src="/media/{{ goods.avatar }}" width=100% height=100%></div>
+                            <div><img class="media-object" src="/media/{{ goods.avatar }}" width=100% height=100%></div>
+                            <div><img class="media-object" src="/media/{{ goods.avatar }}" width=100% height=100%></div>
+                            <div><img class="media-object" src="/media/{{ goods.avatar }}" width=100% height=100%></div>
+                        </div>
+                    </div>
+
+                    <!-- 条目中可以是任意内容，如：<img src=""> -->
+                    <script>
+                        layui.use('carousel', function () {
+                            var carousel = layui.carousel;
+                            var a = '{{ goods.type_id }}';
+                            console.log(a);
+                            //建造实例
+                            carousel.render({
+                                elem: '#'+a,
+                                width: '100%', //设置容器宽度
+                                arrow: 'always' //始终显示箭头
+                                //,anim: 'updown' //切换动画方式
+                            });
+                        });
+                    </script>
+                </div>
+                <div class="media-right">
+                    <li>类型：{{ goods.title }}</li>
+                    <li>库存：{{ goods.sum }}</li>
+                    <li>简介：{{ goods.description }}</li>
+                    <li>
+                        <a href="/goods/detail/?type_id={{ goods.type_id }}">
+                            <button class="layui-btn">前往购买</button>
+                        </a>
+                    </li>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    <!--分页-->
+    <div id="demo1"></div>
+        <div class="pagenation">
+            {% if has_previous %}
+                <a href="/goods/index/?page_id={{ page_curr|add:-1 }}&limit=4">< 上一页 </a>
+            {% else %}
+                <a class="layui-btn-disabled">< 上一页 </a>
+            {% endif %}
+
+            {% for pindex in page_list %}
+                <!--如果选择的是当前页，则标记为活动样式-->
+                {% if pindex == page_curr %}
+                    <a href="#" class="active">{{ pindex }}</a>
+                {% else %}
+                    <a href="/goods/index/?page_id={{ pindex }}&limit=4">{{ pindex }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if has_next %}
+                <a href="/goods/index/?page_id={{ page_curr|add:1 }}&limit=4">下一页 ></a>
+            {% else %}
+                <a class="layui-btn-disabled">< 下一页 </a>
+            {% endif %}
+        </div>
+
+
+{#    <script>#}
+{##}
+{#        function showRecord(pageNo, pageSize) {#}
+{#            $.get("${ctxPath}/score-record/showRecord",#}
+{#                {#}
+{#                    pageNo: pageNo,#}
+{#                    pageSize: pageSize#}
+{#                },#}
+{#                function (date) {#}
+{#                    //加载后台返回的List集合数据#}
+{##}
+{#                },#}
+{#                "json"#}
+{#            );#}
+{#        }#}
+{##}
+{##}
+{#        layui.use(['laypage', 'layer'], function () {#}
+{#            var laypage = layui.laypage#}
+{#                , layer = layui.layer;#}
+{#            var limit = 4;#}
+{##}
+{#            //总页数大于页码总数#}
+{#            laypage.render({#}
+{#                elem: 'demo1'#}
+{#                , count: 10 //数据总数#}
+{#                , limit: 4 //每页显示条数#}
+{#                , jump: function (obj, first) {#}
+{#                    if (!first) {#}
+{#                        location.href = '/goods/index/?page_id=' + obj.curr + '&limit=' + limit;#}
+{#                    }#}
+{#                }#}
+{#            });#}
+{#        })#}
+{#    </script>#}
+
+{% endblock content %}
