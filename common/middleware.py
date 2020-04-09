@@ -10,6 +10,7 @@ class AuthenticateMiddleware(MiddlewareMixin):
     '''用户认证'''
     def process_request(self,request):
         user = request.user
+        print(request.path)
         if request.path in EXCEPT_URL_POST:  # 如登录、注册、忘记密码页面等包括get和post请求的全部放行
             return None
         for i in EXCEPT_URL_GET:  # 部分页面只放行get请求

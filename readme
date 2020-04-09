@@ -1,0 +1,6 @@
+短信验证码：
+    路径：ACShop/ac_user/views.py
+    方法：code_auth
+    切换为正式服务，需要：
+    1.YunPian('APIKEY') 中 APIKEY 去掉引号
+    2.sms_status['code'] 是云片网发来的结果，code 值为0表示访问成功，所以将 != 改为 ==

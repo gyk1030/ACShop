@@ -50,52 +50,6 @@ class IndexView(View):
                                                        'has_next': has_next, 'page_curr': page_id, 'name': name})
 
 
-# # 生成订单
-# class CreateOrderView(View):
-#     def get(self,request,type_id):
-#         return redirect('/goods/detail/%s'%(type_id))
-#
-#     # @transaction.atomic()
-#     def post(self,request,type_id):
-#         user = Authenticate(request)
-#         order_data = {}
-#         info = {'status': 100, 'msg': None}
-#         forms = OrderForms(request.POST)
-#         if forms.is_valid():
-#             tran_id = transaction.savepoint()  # 建立事物点
-#             try:
-#                 dic = forms.cleaned_data
-#
-#                 price_id,price = dic['price_id']
-#                 price_obj = Goods().price.get(pk=price_id)
-#                 count = dic['count']
-#                 total_price = float(price) * int(count)  # 计算出总价格
-#                 order_no = get_new_no()  # 生成一个唯一随机订单号
-#
-#                 order_data.setdefault('order_no', order_no)  # 订单号
-#                 order_data.setdefault('user', user)  # 用户
-#                 order_data.setdefault('price', price_obj)  # 单价
-#                 order_data.setdefault('total_price', total_price)  # 总价格
-#                 order_data.setdefault('count', count)  # 数量
-#                 print(order_data)
-#                 order_obj = create_order(order_data)  # 创建订单
-#
-#                 return redirect('/order/order_pay_page/?order_no={}'.format(order_no))
-#             except Exception as e:
-#                 print(e)
-#                 transaction.savepoint_rollback(tran_id)  # 期间出错，全部回滚
-#                 info['status'] = 101
-#                 info['msg'] = '订单生成失败'
-#         else:
-#             info['status'] = 101
-#             error_all = forms.errors.get('__all__')
-#             error_price_id = forms.errors.get('price_id')
-#             info['msg'] = error_price_id if error_price_id else error_all
-#             # print(forms.errors)
-#         # request.method = 'GET'
-#         # print(':::::',request.method)
-#         return GoodsDetailView.get(self,request,type_id,info)
-
 # 购买页面
 class GoodsDetailView(View):
     '''详情页面'''

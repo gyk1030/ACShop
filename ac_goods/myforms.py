@@ -1,7 +1,5 @@
 from django import forms
-from django.forms import widgets
 from django.core.exceptions import ValidationError
-from ac_order import  models
 from ac_goods.models import UnitPrice
 
 

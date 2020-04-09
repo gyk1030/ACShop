@@ -83,7 +83,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'acshop',
         'USER': 'root',
-        'PASSWORD': '123456',
+        'PASSWORD': '654321',
         'HOST': '127.0.0.1',
         'PORT': 3306
     }
@@ -141,12 +141,10 @@ MEDIA_ROOT=os.path.join(BASE_DIR,'media')
 AUTH_USER_MODEL = "ac_user.UserInfo"
 
 # 云片网apikey
-APIKEY = '57ca89c4b286e82d5 6db94434b4f4f79'
-
+APIKEY = '57ca89c4b286e82d56db94434b4f4f79'
 
 # session过期时间
 SESSION_COOKIE_AGE = 8*3600+60
-
 
 # 邮箱相关配置
 HOST = 'smtp.163.com'  # 设置邮箱的域名
@@ -165,7 +163,7 @@ NOTIFY_URL = 'http://127.0.0.1:8000/goods/index/'  # 异步回调地址
 MODE_LIST = ['ALIPAY', 'WEIXIN', 'BANK']
 
 # 不进行身份验证url
-EXCEPT_URL_POST = ['/login/','/register/',]
+EXCEPT_URL_POST = ['/login/','/register/','/users/code_auth/',]
 EXCEPT_URL_GET = ['/goods/index/','/goods/detail/','/users/get_code/','/uses/send_email/',
                   '/users/reset_pwd/','/static/.*','/media/.*']
 

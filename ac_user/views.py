@@ -11,14 +11,15 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.contrib.auth import logout
 
-from ACShop.settings import FROM, SUBJECT, HOST
+from ACShop.settings import FROM, SUBJECT, HOST, APIKEY
 from common.utils import CustomBackend, gen_code_num
-# from common.authenticate import Authenticate,get_user
 from common.emails import to_send
 from common.yunpian import YunPian
 from common.pictureCode import gen_code
+from common import response_utils
 
 from django.views import View
+
 
 class UserViewset(View):
     '''注册视图'''
@@ -215,23 +216,19 @@ def send_email(request):
 
 # 发送短信验证码
 def code_auth(request):
-    info = {'stu': 101, 'msg': '发送失败'}
     if request.method == 'POST':
-        phone = request.POST.get('phone')
-        code = gen_code_num(4)  # 调用生成随机验证码
-        print(code)
         try:
+            phone = request.POST.get('phone')
+            code = gen_code_num(4)  # 调用生成随机验证码
+            print(code)
             yun_pian = YunPian('APIKEY')  # 实例化
             sms_status = yun_pian.send_sms(code, phone)  # 接收云片网发来的状态码，0表成功，其他代表错误
             if sms_status['code'] != 0:  # ==0是才成功///记着改回来
                 request.session[phone] = code
-                info['stu'], info['msg'] = 100, '发送成功'
+                return response_utils.wrapper_200()
+            return response_utils.wrapper_400('发送验证码失败')
         except Exception as e:
-            info['msg'] = '发送短信验证码失败'
-        return JsonResponse(info)
-    if request.method == 'GET':
-        return JsonResponse('请求无效')
-
+            return response_utils.wrapper_500('发送验证码失败，服务器内部错误')
 
 # 错误页面
 def error(request):
