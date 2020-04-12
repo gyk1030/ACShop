@@ -5,7 +5,7 @@ import datetime
 delay = datetime.datetime.now()+datetime.timedelta(hours=8)
 
 class TypeInfo(models.Model):
-    avatar = models.FileField(upload_to='avatar/',default='default.jpg')
+    avatar = models.FileField(upload_to='avatar/',default='avatar/default.jpg')
     title = models.CharField(max_length=20,verbose_name='类型',unique=True)
     isDelete = models.BooleanField(default=False,verbose_name='是否删除')
     description = models.CharField(max_length=255,verbose_name='类型简介')
@@ -31,9 +31,8 @@ class UnitPrice(models.Model):
     type = models.ForeignKey(TypeInfo,related_name='price',on_delete=models.CASCADE,verbose_name='类型')
     level = models.ForeignKey(LevelInfo,related_name='price',on_delete=models.CASCADE,verbose_name='级别')
     price = models.DecimalField(decimal_places=2,max_digits=5,verbose_name='价格')
-    Choice = ((0,'人民币'),(1,'美元'))
+    Choice = ((0,'人民币'))
     currency = models.IntegerField(choices=Choice,default=0,verbose_name='货币')
-    # stock = models.IntegerField(verbose_name='库存')  # 与实际账号数保持一致
     unit = models.CharField(max_length=10,default='个',verbose_name='单位')
     isDelete = models.BooleanField(default=False)
 

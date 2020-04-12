@@ -63,7 +63,7 @@
                 </div>
                 <div class="layui-form-mid layui-word-aux">修改昵称</div>
             </div>
-            <span class="msg" style="position: absolute">{{ info.msg.errors.name }}</span>
+            <span class="msg" style="position: absolute">{{ errors.name }}</span>
 
             <!-- 手机号显示 -->
             <div class="layui-form-item">
@@ -83,7 +83,7 @@
                 </div>
                 <div class="layui-form-mid layui-word-aux">修改邮箱</div>
             </div>
-            <span class="msg" style="position: absolute">{{ info.msg.errors.email }}</span>
+            <span class="msg" style="position: absolute">{{ errors.email }}</span>
 
             <!-- 旧密码输入验证 -->
             <div class="layui-form-item">
@@ -94,7 +94,7 @@
                 </div>
                 <div class="layui-form-mid layui-word-aux">输入旧密码验证身份</div>
             </div>
-            <span class="msg" style="position: absolute">{{ info.msg.errors.old_pwd }}</span>
+            <span class="msg" style="position: absolute">{{ errors.old_pwd }}</span>
 
             <!-- 新密码输入 -->
             <div class="layui-form-item">
@@ -105,7 +105,7 @@
                 </div>
                 <div class="layui-form-mid layui-word-aux">输入新密码修改密码</div>
             </div>
-            <span class="msg" style="position: absolute">{{ info.msg.errors.password }}</span>
+            <span class="msg" style="position: absolute">{{ errors.password }}</span>
 
             <!-- 重复密码输入 -->
             <div class="layui-form-item">
@@ -116,7 +116,7 @@
                 </div>
                 <div class="layui-form-mid layui-word-aux">再次输入验证密码</div>
             </div>
-            <span class="msg" style="position: absolute">{{ info.msg.all_error }}</span>
+            <span class="msg" style="position: absolute">{{ all_error }}</span>
 
             <!-- 性别选择按钮显示 -->
             <div class="layui-form-item">
@@ -141,7 +141,7 @@
 
                 </div>
             </div>
-            <span class="msg" style="position: absolute">{{ info.msg.errors.birth }}</span>
+            <span class="msg" style="position: absolute">{{ errors.birth }}</span>
 
             <!-- 地址显示 -->
             <div class="layui-form-item">
@@ -151,7 +151,7 @@
                            class="layui-input" value="{{ user.address }}">
                 </div>
             </div>
-            <span class="msg" style="position: absolute">{{ info.msg.errors.address }}</span>
+            <span class="msg" style="position: absolute">{{ errors.address }}</span>
 
             <div class="layui-form-item">
                 <div class="layui-input-block">

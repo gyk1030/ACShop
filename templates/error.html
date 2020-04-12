@@ -1,0 +1,44 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta charset="UTF-8" http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+    <title>对不起，您访问的出错了</title>
+
+    <style type="text/css">
+        div {
+            width: 580px;
+            height: 280px;
+            {#margin: 120px auto;#}
+            position:absolute;
+            top: 40%;
+            left: 50%;
+            margin-top: -140px;
+            margin-left: -290px;
+            {#margin-left: 30%;#}
+            background: url(/static/error/error.jpg) no-repeat;
+            display: inline-block;
+        }
+
+        .err404 {
+            background-position: -400px -100px;
+        }
+
+        .err500 {
+            background-position: -400px -370px;
+        }
+    </style>
+</head>
+
+<body>
+{% if a == '404' %}
+    <div class="err404"></div>
+{% else %}
+    <div class="err500"></div>
+{% endif %}
+</body>
+
+</html>

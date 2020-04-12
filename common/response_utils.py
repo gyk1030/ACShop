@@ -23,3 +23,5 @@ def wrapper_500(msg=""):
     resp_data["errMsg"] = msg
     return JsonResponse(resp_data)
 
+
+

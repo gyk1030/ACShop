@@ -1,7 +1,7 @@
 # Author:gyk
 from django.conf.urls import url
 from ac_user import views
-
+from common.utils import err404
 
 urlpatterns = [
     url('^personal/$', views.PersonalViewset.as_view(), name='personal'),
@@ -12,5 +12,5 @@ urlpatterns = [
     url('^log_out/$', views.log_out, name='log_out'),
     url('^payed/$', views.payed, name='payed'),
     url('^payed_info/$', views.payed_info, name='payed_info'),
-    url('', views.error)
+    url('.*', err404)
 ]

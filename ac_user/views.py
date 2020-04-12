@@ -12,7 +12,7 @@ from django.core.paginator import Paginator
 from django.contrib.auth import logout
 
 from ACShop.settings import FROM, SUBJECT, HOST, APIKEY
-from common.utils import CustomBackend, gen_code_num
+from common.utils import CustomBackend, gen_code_num, get_name
 from common.emails import to_send
 from common.yunpian import YunPian
 from common.pictureCode import gen_code
@@ -23,9 +23,11 @@ from django.views import View
 
 class UserViewset(View):
     '''注册视图'''
-    def get(self,request):
+
+    def get(self, request):
         return render(request, 'ac_user/register.html')
-    def post(self,request):
+
+    def post(self, request):
         response = {'status': 100, 'msg': None}
         forms = RegForms(request, request.POST)
 
@@ -43,11 +45,14 @@ class UserViewset(View):
             print(forms.errors)
         return JsonResponse(response)
 
+
 class LoginViewset(View):
     '''登录视图'''
-    def get(self,request):
+
+    def get(self, request):
         return render(request, 'ac_user/login.html')
-    def post(self,request):
+
+    def post(self, request):
         username = request.POST.get('username')
         password = request.POST.get('password')
         valid_code = request.POST.get('valid_code')
@@ -68,6 +73,7 @@ class LoginViewset(View):
             error = '验证码错误'
             return render(request, 'ac_user/login.html', {'error': error})
 
+
 # 登出
 def log_out(request):
     logout(request)
@@ -76,9 +82,10 @@ def log_out(request):
 
 # 重置密码
 class ResetPwdViewset(View):
-    def get(self,request):
+    def get(self, request):
         return render(request, 'ac_user/reset_pwd.html')
-    def post(self,request):
+
+    def post(self, request):
         response = {'status': 100, 'msg': None}
 
         forms = ResetForms(request, request.POST)
@@ -100,25 +107,40 @@ class ResetPwdViewset(View):
 
 # 个人资料信息返回
 class PersonalViewset(View):
-    def get(self,request):
-        # user = Authenticate(request)
-        user = request.user
-        types = Goods().type.gets()
-        user_data = {}
-        if user:
+    def get(self, request):
+        try:
+            user = request.user
+            types = Goods().type.gets()
+            user_data = {}
+            data = {}
+            if not user:
+                data['msg'] = '获取用户对象失败'
+                return render(request, 'ac_user/personal.html', data)
+
             user_data['name'] = user.name
             user_data['username'] = user.username
             user_data['email'] = user.email
             user_data['sex'] = user.sex
             user_data['birth'] = str(user.birth) if user.birth else ''
             user_data['address'] = user.address if user.address else ''
-            return render(request, 'ac_user/personal.html', {'types': types, 'name': user.name, 'user': user_data})
 
-    def post(self,request):
-        user = request.user
-        types = Goods().type.gets()
-        info = {'status': 100, 'msg': {}}
-        if user:
+            data['types'] = types
+            data['name'] = user.name
+            data['user'] = user_data
+
+            return render(request, 'ac_user/personal.html', data)
+        except Exception as e:
+            return render(request, 'error.html', {'error': 500})
+
+    def post(self, request):
+        try:
+            user = request.user
+            types = Goods().type.gets()
+            data = {}
+            if not user:
+                data['msg'] = '获取用户对象失败'
+                return render(request, 'ac_user/personal.html', data)
+
             forms = PerForms(request, request.POST)
             if forms.is_valid():
                 forms.cleaned_data.pop('old_pwd')
@@ -126,92 +148,110 @@ class PersonalViewset(View):
                 User().user.gets(username=user).update(**forms.cleaned_data)
                 return redirect('/users/personal/')
             else:
-                info['status'] = 101
-                info['msg'].setdefault('errors', forms.errors)
+                data['errors'] = forms.errors
                 all_error = forms.errors.get('__all__')
                 if all_error:
                     all_error = all_error[0]
-                info['msg']['all_error'] = all_error if all_error else ''
-                return render(request, 'ac_user/personal.html', {'types': types, 'info': info})
-        else:
-            info['msg'] = '信息修改成功'
-            return render(request, 'ac_user/personal.html', {'types': types, 'info': info})
+                data['all_error'] = all_error if all_error else ''
+                data['types'] = types
+                return render(request, 'ac_user/personal.html', data)
+        except Exception as e:
+            return render(request, 'error.html', {'error': 500})
 
 
 # 购买信息页面返回
 @login_required(login_url='/login/')
 def payed(request):
-    user = request.user
-    types = Goods().type.gets()
     if request.method == 'GET':
-        return render(request, 'ac_user/payed.html', {'name': user.name, 'types': types, })
+        try:
+            name = get_name(request)
+            types = Goods().type.gets()
+
+            data = {}
+            data['name'] = name
+            data['types'] = types
+            return render(request, 'ac_user/payed.html', data)
+        except Exception as e:
+            return render(request, 'error.html', {'error': 500})
 
 
 # 购买信息数据返回
-@login_required(login_url='/login/')
-def payed_info(request):
-    n = 1
-    if request.method == 'GET':
-        user = request.user
-        page_id = request.GET.get('page', 1)
-        limit = request.GET.get('limit', 10)
-        accounts_list = []
-        accounts_dic = {'code': 0, 'msg': None, 'count': 0, 'data': None}
-        if user:
-            orders = Order().order.gets(Q(trade_status=2 or 3), user=user)
+class PayedList(View):
+    def get(self, request):
+        try:
+            user = request.user
+            page_id = request.GET.get('page', 1)
+            limit = request.GET.get('limit', 10)
+            if not user:
+                return response_utils.wrapper_400('获取用户对象失败')
+
+            orders = Order().order.gets(Q(trade_status=2)|Q(trade_status=3), user=user)
+            if not orders:
+                return response_utils.wrapper_400('无订单信息')
+
+            accounts_list = []
             for order in orders:
-                for account in order.account.all():
+                for index, account in enumerate(order.account.all()):
                     account_dic = {}
                     info = str(account.price).split(':')
-                    account_dic.setdefault('id', n)
+                    account_dic.setdefault('id', index + 1)
                     account_dic.setdefault('order_no', order.order_no)
                     account_dic.setdefault('type', info[0])
                     account_dic.setdefault('account_str', account.account_str)
                     account_dic.setdefault('price', info[1])
                     account_dic.setdefault('sale_time', account.sale_time.strftime('%Y-%m-%d %H:%M:%S'))
                     accounts_list.append(account_dic)
-                    n += 1
 
-                paginator = Paginator(accounts_list, limit)  # 分页，每页显示limit个
-                try:
-                    account_list = paginator.page(int(page_id))
-                    account_list = [i for i in account_list]  # 将数据从Page对象中遍历出来
-                    page_count = paginator.count
-                    accounts_dic['count'] = page_count
-                    accounts_dic['data'] = account_list
-                except:
-                    pass
-        return JsonResponse(accounts_dic)
+            try:
+                paginator = Paginator(accounts_list, limit)  # 分页
+                account_list = paginator.page(int(page_id))
+                account_list = [i for i in account_list]  # 将数据从Page对象中遍历出来
+                page_count = paginator.count
+            except Exception as e:
+                return response_utils.wrapper_400('分页失败')
+
+            data = {}
+            data['data'] = account_list
+            data['count'] = page_count
+            return response_utils.wrapper_200(data=data)
+        except Exception as e:
+            return response_utils.wrapper_500('获取已购买商品信息失败，系统内部错误')
 
 
 # 获取图片验证码
 def get_code(request):
-    data, code_str = gen_code()
-    print(code_str)
-    request.session['valid_code'] = code_str.upper()  # 把验证码放到session
-    return HttpResponse(data)
+    try:
+        data, code_str = gen_code()
+        print(code_str)
+        request.session['valid_code'] = code_str.upper()  # 把验证码放到session
+        return HttpResponse(data)
+    except Exception as e:
+        return HttpResponse('')
 
 
 # 发送邮件
 def send_email(request):
     # 发送邮件
-    info = {'stu': 101, 'msg': '发送失败'}
     if request.method == 'POST':
-        email = request.POST.get('email', None)
-        ret = User().user.gets(isDelete=False, email=email).exists()
-        print(email)
-        if ret:
-            code = gen_code_num(6)
+        try:
+            email = request.POST.get('email')
+            if not email:
+                return response_utils.wrapper_400('参数缺失email')
+
+            ret = User().user.gets(email=email).exists()
+            if not ret:
+                return response_utils.wrapper_400('该邮箱未注册')
+
+            code = gen_code_num(6)  # 生成6为数字验证码
             print(code)
             send_res, msg = to_send(code, email, FROM, SUBJECT, HOST)
-            if send_res:
-                request.session[email] = code
-                info['stu'], info['msg'] = 100, msg
-            else:
-                info['msg'] = msg
-        else:
-            info['msg'] = '该邮箱未被注册'
-    return JsonResponse(info)
+            if not send_res:
+                return response_utils.wrapper_400(msg)
+
+            request.session[email] = code
+            return response_utils.wrapper_200()
+        except Exception as e:
+            return response_utils.wrapper_500('发送邮件失败，系统内部错误')
 
 
 # 发送短信验证码
@@ -229,7 +269,3 @@ def code_auth(request):
             return response_utils.wrapper_400('发送验证码失败')
         except Exception as e:
             return response_utils.wrapper_500('发送验证码失败，服务器内部错误')
-
-# 错误页面
-def error(request):
-    return render(request, '404.html')

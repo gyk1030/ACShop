@@ -19,7 +19,7 @@ from django.conf.urls import url
 from ACShop import settings
 from django.views.static import serve
 from ac_user.views import LoginViewset,UserViewset
-
+from common.utils import err404, err500
 
 from django.shortcuts import render
 def ceshi(request):
@@ -36,7 +36,8 @@ urlpatterns = [
     path('users/', include('ac_user.urls')),
     path('order/', include('ac_order.urls')),
 
-    path('',ceshi),
-    path('1/',ceshi1)
+    # path('',ceshi),
+    # path('1/',ceshi1),
+    url('.*', err404)
     # url('^get_code/$', views.get_code, name='get_code'),
 ]

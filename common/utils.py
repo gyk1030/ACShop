@@ -4,6 +4,7 @@ from django.db.models import Q
 from ac_user.models import UserInfo
 from django.contrib.auth.backends import ModelBackend
 from ac_goods.models import TypeInfo
+from django.shortcuts import render
 import uuid
 import random
 
@@ -43,3 +44,10 @@ def gen_code_num(n):
 def get_types():
     return TypeInfo.objects.filter(isDelete=False)
 
+
+def err404(request):
+    return render(request, 'error.html', {'error':'404'})
+
+
+def err500(request):
+    return render(request, 'error.html', {'error':'500'})

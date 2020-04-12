@@ -83,7 +83,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'acshop',
         'USER': 'root',
-        'PASSWORD': '654321',
+        'PASSWORD': '123456',
         'HOST': '127.0.0.1',
         'PORT': 3306
     }
@@ -159,13 +159,12 @@ ALIPAY_PUBLIC_KEY_PATH = 'ac_order/KEYS/alipay-public-2048.txt'  #支付宝公�
 RETURN_URL = 'http://127.0.0.1:8000/order/Pay/'  # 同步回调地址
 # RETURN_URL = None  # 同步回调地址
 NOTIFY_URL = 'http://127.0.0.1:8000/goods/index/'  # 异步回调地址
-# 支付方式
-MODE_LIST = ['ALIPAY', 'WEIXIN', 'BANK']
+
 
 # 不进行身份验证url
-EXCEPT_URL_POST = ['/login/','/register/','/users/code_auth/',]
+EXCEPT_URL_POST = ['/login/','/register/','/users/code_auth/','/admin/.*',]
 EXCEPT_URL_GET = ['/goods/index/','/goods/detail/','/users/get_code/','/uses/send_email/',
-                  '/users/reset_pwd/','/static/.*','/media/.*']
+                  '/users/reset_pwd/','/static/.*','/media/.*','/admin/.*',]
 
 # 订单/支付二维码超时时间(min)
 ORDER_TIMEOUT = 2
