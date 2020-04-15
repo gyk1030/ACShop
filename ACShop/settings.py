@@ -83,7 +83,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'acshop',
         'USER': 'root',
-        'PASSWORD': '123456',
+        'PASSWORD': '654321',
         'HOST': '127.0.0.1',
         'PORT': 3306
     }

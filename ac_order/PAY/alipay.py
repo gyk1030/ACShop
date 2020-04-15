@@ -13,10 +13,7 @@ from ACShop import settings
 
 
 class Pay(object):
-    """
-    支付宝支付接口(PC端支付接口)
-    """
-
+    """支付宝支付接口(PC端支付接口)"""
     def __init__(self, appid, app_notify_url, app_private_key_path,
                  alipay_public_key_path, return_url, time_out_express, debug=False):
         self.appid = appid

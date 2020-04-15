@@ -18,8 +18,8 @@ from django.urls import path,include
 from django.conf.urls import url
 from ACShop import settings
 from django.views.static import serve
-from ac_user.views import LoginViewset,UserViewset
-from common.utils import err404, err500
+from ac_user.views import Login,Register
+from common.utils import err404
 
 from django.shortcuts import render
 def ceshi(request):
@@ -29,8 +29,8 @@ def ceshi1(request):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    url('^login/$', LoginViewset.as_view(), name='login'),
-    url('^register/$', UserViewset.as_view(), name='register'),
+    url('^login/$', Login.as_view(), name='login'),
+    url('^register/$', Register.as_view(), name='register'),
     url('^media/(?P<path>.*)', serve, {'document_root': settings.MEDIA_ROOT}),
     path('goods/', include('ac_goods.urls')),
     path('users/', include('ac_user.urls')),

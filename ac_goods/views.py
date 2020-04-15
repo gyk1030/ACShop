@@ -1,40 +1,40 @@
-from django.shortcuts import render, redirect, HttpResponse
-
+import logging
+import traceback
 import datetime
+
+from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
 from django.db import transaction
-
-from ac_goods.myforms import OrderForms
-
-from common.chackData import Goods,Order
-from common.utils import get_new_no,get_name
 from django.views import View
 
+from ac_goods.myforms import OrderForms
+from common.chackData import Goods,Order
+from common.utils import get_new_no,get_name
 
+logger = logging.getLogger()
 
 class GoodsList(View):
     '''主页面'''
     def get(self, request):
         try:
             name = get_name(request)
-            page_id = request.GET.get('page_id', 1)  # 当前页
-            limit = request.GET.get('limit', 5)  # 每页显示条数
-            type_list = []
+            page_id = request.GET.get('page_id', '1')  # 当前页
+            limit = request.GET.get('limit', '5')  # 每页显示条数
             has_previous = False    # 是否有前一页
             has_next = False        # 是否有后一页
+            types = Goods().type.gets()
 
-            if page_id.isdigit() or limit.isdigit():
-                page_id = int(page_id)
-                limit = int(limit)
+            if not (page_id.isdigit() and limit.isdigit()):
+                return render(request, 'ac_goods/index.html')
+
+            page_id = int(page_id)
+            limit = int(limit)
 
             data = {}
             data['name'] = name
-
-            types = Goods().type.gets()
-            if not types:
-                return render(request, 'ac_goods/index.html', data)
             data['types'] = types
 
+            type_list = []
             for type in types:
                 data_dic = {}   # 存放每个类型下的所有信息
                 sum = 0         # 每个类型下的账号总数
@@ -67,6 +67,7 @@ class GoodsList(View):
 
             return render(request, 'ac_goods/index.html', data)
         except Exception as e:
+            logger.error(traceback.format_exc())
             return render(request, 'error.html', {'error': 500})
 
 

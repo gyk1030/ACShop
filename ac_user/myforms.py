@@ -6,7 +6,7 @@ import re
 from django.contrib.auth.hashers import make_password
 
 
-class commForms(forms.Form):
+class CommForms(forms.Form):
     '''通用（登录注册）检验字段'''
     email = forms.EmailField(label='邮箱', error_messages={'invalid': '邮箱格式错误',
                                                          'required': '该字段必填'})
@@ -18,7 +18,7 @@ class commForms(forms.Form):
                                              'required': '该字段必填'})
 
     def __init__(self, request, data):
-        super(commForms, self).__init__(data)
+        super(CommForms, self).__init__(data)
         self.request = request
 
     # 全局钩子函数（校验两次密码是否一致）
@@ -31,18 +31,11 @@ class commForms(forms.Form):
             password = make_password(password)  # 为新密码加密
             self.cleaned_data['password'] = password
         else:
-            self.cleaned_data.pop('password')
+            raise ValidationError('密码不能为空')
         return self.cleaned_data
 
-        # password = self.cleaned_data.get('password')
-        # re_pwd = self.cleaned_data.get('re_pwd')
-        # if password == re_pwd:
-        #     return self.cleaned_data
-        # else:
-        #     raise ValidationError('两次密码不一致')  # raise抛出异常
 
-
-class RegForms(commForms):
+class RegForms(CommForms):
     '''注册数据校验'''
     code = forms.CharField(min_length=4, max_length=4,
                            error_messages={'min_length': '验证码太短', 'max_length': '验证码太长',
@@ -81,7 +74,7 @@ class RegForms(commForms):
             return email
 
 
-class ResetForms(commForms):
+class ResetForms(CommForms):
     '''重置密码数据校验'''
     code = forms.CharField(min_length=4, max_length=4,
                            error_messages={'min_length': '验证码太短', 'max_length': '验证码太长',
@@ -105,21 +98,14 @@ class ResetForms(commForms):
             raise ValidationError('该邮箱还未被注册')
 
 
-class PerForms(commForms):
+class PerForms(CommForms):
     '''个人信息修改数据校验'''
     name = forms.CharField(min_length=3, max_length=10, label='昵称',
                            error_messages={'min_length': '昵称太短', 'max_length': '昵称太长',
                                            'required': '该字段必填'})
-    # email = forms.EmailField(label='邮箱', error_messages={'invalid': '邮箱格式错误',
-    #                                                      'required': '该字段必填'})
     old_pwd = forms.CharField(min_length=3, max_length=20, label='旧密码',
                               error_messages={'min_length': '密码太短', 'max_length': '密码太长',
                                               'required': '该字段必填'})
-    # password = forms.CharField(min_length=3, max_length=20, label='旧密码',
-    #                           error_messages={'min_length': '密码太短', 'max_length': '密码太长',})
-    # re_pwd = forms.CharField(min_length=3, max_length=20, label='旧密码',
-    #                           error_messages={'min_length': '密码太短', 'max_length': '密码太长',})
-
     sex = forms.IntegerField(error_messages={'invalid': '数据格式错误'})
     birth = forms.DateField(error_messages={'invalid': '日期格式错误'})
     address = forms.CharField(min_length=3, max_length=30, label='地址',
@@ -157,16 +143,4 @@ class PerForms(commForms):
             if not clean_birth:
                 raise ValidationError('时间格式不正确')
             return birth
-
-    # def clean(self):
-    #     password = self.cleaned_data.get('password')
-    #     re_pwd = self.cleaned_data.get('re_pwd')
-    #     if password != re_pwd:
-    #         raise ValidationError('密码不一致')
-    #     elif password and re_pwd:
-    #         password = make_password(password)  # 为新密码加密
-    #         self.cleaned_data['password'] = password
-    #     else:
-    #         self.cleaned_data.pop('password')
-    #     return self.cleaned_data
 

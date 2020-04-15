@@ -1,8 +1,8 @@
 # Author:gyk
 
 # 验证码coding
-from io import BytesIO
 import random
+from io import BytesIO
 from PIL import Image,ImageFont,ImageDraw
 
 

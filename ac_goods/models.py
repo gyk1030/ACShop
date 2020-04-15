@@ -31,7 +31,7 @@ class UnitPrice(models.Model):
     type = models.ForeignKey(TypeInfo,related_name='price',on_delete=models.CASCADE,verbose_name='类型')
     level = models.ForeignKey(LevelInfo,related_name='price',on_delete=models.CASCADE,verbose_name='级别')
     price = models.DecimalField(decimal_places=2,max_digits=5,verbose_name='价格')
-    Choice = ((0,'人民币'))
+    Choice = ((0,'人民币'),)
     currency = models.IntegerField(choices=Choice,default=0,verbose_name='货币')
     unit = models.CharField(max_length=10,default='个',verbose_name='单位')
     isDelete = models.BooleanField(default=False)

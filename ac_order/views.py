@@ -1,23 +1,26 @@
-from django.shortcuts import render, redirect
-
+import logging
+import traceback
 import datetime
 import time
 
-from ac_order.PAY.alipay import AliPay
 from django.views import View
 from django.db.models import Q
+from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
 from django.db import transaction
 
 from common.chackData import Goods, Order
 from common import response_utils
 from common.utils import get_name
-
+from ac_order.PAY.alipay import AliPay
 from ACShop.settings import ORDER_TIMEOUT, TIME_OUT_EXPRESS
+
+logger = logging.getLogger()
 
 
 class OrderPayView(View):
-    # 订单支付页面
+    '''订单支付页面'''
+
     def get(self, request, order_no=None):
         try:
             name = get_name(request)
@@ -37,9 +40,11 @@ class OrderPayView(View):
             order_data.setdefault('price', order.price.price)
             order_data.setdefault('total_price', order.total_price)
             order_data.setdefault('count', order.count)
+
             delta = datetime.timedelta(minutes=ORDER_TIMEOUT)  # 设置延时时间
             end_time = (order.add_time + delta).strftime('%Y/%m/%d,%H:%M:%S')
             order_data.setdefault('end_time', str(end_time))
+
             type = order.price.type.title
             level = order.price.level.name
             order_data.setdefault('type', type + '：' + level)
@@ -50,6 +55,7 @@ class OrderPayView(View):
 
             return render(request, 'ac_order/order.html', data)
         except Exception as e:
+            logger.error(traceback.format_exc())
             return render(request, 'error.html', {'error': 500})
 
     def post(self, request):
@@ -75,6 +81,7 @@ class OrderPayView(View):
 
             return response_utils.wrapper_200(data=data)
         except Exception as e:
+            logger.error(traceback.format_exc())
             return response_utils.wrapper_500('获取支付订单失败，系统内部错误')
 
     def _ali_pay(self, order_no, total_price):
@@ -88,11 +95,12 @@ class OrderPayView(View):
             re_url = "https://openapi.alipaydev.com/gateway.do?{data}".format(data=url)
             return re_url
         except Exception as e:
+            logger.error(traceback.format_exc())
             return None
 
 
-# 订单支付结果查询/////上线时不用的
-class ChackView(View):
+class CheckOrder(View):
+    '''订单支付结果查询/////上线时不用的'''
 
     def post(self, request):
         # 用户及参数校验
@@ -169,32 +177,36 @@ class ChackView(View):
             return False
 
 
-# 订单超时，删除订单
 class KillOrder(View):
+    '''订单超时，删除订单'''
+
     def get(self, request):
         try:
             order_no = request.GET.get('order_no')
             if not order_no:
-                order_no = request.GET.get('order_no')
+                return response_utils.wrapper_400('order_no参数缺失！')
+
             order = Order().order.gets(order_no=order_no)
             if order.exists():
                 Order().order.delete(order_no=order_no)
+
             return redirect('/order/ordered/')
         except Exception as e:
+            logger.error(traceback.format_exc())
             return render(request, 'error.html', {'error': 500})
 
 
-# 支付宝调用接口
-class PayView(View):
-    alipay = AliPay()
+class PayResultHandler(View):
+    '''支付宝调用接口'''
 
     def get(self, request):
         '''处理与return_url请求相似'''
         try:
+            self.alipay = AliPay()
             params = request.GET.dict()
             order_no = params.get('out_trade_no')
             sign = params.pop('sign', None)
-            data = {'code':200}
+            data = {'code': 200}
             verify_result = self.alipay.verify(params, sign)  # 验签
 
             if not (order_no and sign) or not verify_result:
@@ -204,7 +216,8 @@ class PayView(View):
             data['order_no'] = order_no
             return render(request, 'ac_order/result.html', data)
         except Exception as e:
-            return render(request, 'ac_order/result.html', {'code': 500})
+            logger.error(traceback.format_exc())
+            return render(request, 'error.html', {'error': 500})
 
     @transaction.atomic()
     def post(self, request):
@@ -221,9 +234,9 @@ class PayView(View):
             if not verify_result:
                 return response_utils.wrapper_400('验签失败')
 
-            order_no = processed_dict.get('out_trade_no', None)     # 订单号
-            trade_no = processed_dict.get('trade_no', None)         # 支付宝交易号
-            trade_status = processed_dict.get('trade_status', None) # 交易状态
+            order_no = processed_dict.get('out_trade_no', None)  # 订单号
+            trade_no = processed_dict.get('trade_no', None)  # 支付宝交易号
+            trade_status = processed_dict.get('trade_status', None)  # 交易状态
             tran_id = transaction.savepoint()
             try:
                 order_res = self.modify_order_handler(order_no, trade_status, trade_no)
@@ -236,6 +249,7 @@ class PayView(View):
                 transaction.savepoint_rollback(tran_id)
             return response_utils.wrapper_200()  # 最后记着给支付宝返回一个信息
         except Exception as e:
+            logger.error(traceback.format_exc())
             return response_utils.wrapper_500()
 
     def modify_order_handler(self, order_no, trade_status, trade_no):
@@ -249,6 +263,7 @@ class PayView(View):
                 order.save()
                 return True
         except Exception as e:
+            logger.error(traceback.format_exc())
             return False
 
     def modify_account_status(self, order_no):
@@ -262,30 +277,30 @@ class PayView(View):
                     account.save()
                 return True
         except Exception as e:
+            logger.error(traceback.format_exc())
             return False
 
 
-
-# 订单记录页面返回
 class OrderPage(View):
+    '''订单记录页面返回'''
+
     def get(self, request):
         try:
             name = get_name(request)
+            types = Goods().type.gets()
 
             data = {}
-            types = Goods().type.gets()
-            if not types:
-                data['msg'] = '获取类型信息失败'
-
             data['types'] = types
             data['name'] = name
             return render(request, 'ac_order/ordered.html', data)
         except Exception as e:
+            logger.error(traceback.format_exc())
             return render(request, 'error.html', {'error': '500'})
 
 
-# 订单记录数据返回
 class OrderList(View):
+    '''订单记录数据返回'''
+
     def get(self, request):
         try:
             user = request.user
@@ -318,6 +333,7 @@ class OrderList(View):
                 order_list = [i for i in order_list]  # 将数据从Page对象中遍历出来
                 page_count = paginator.count
             except:
+                logger.error(traceback.format_exc())
                 return response_utils.wrapper_400('分页失败')
 
             orders_dic = {}
@@ -325,26 +341,25 @@ class OrderList(View):
             orders_dic['data'] = order_list
             return response_utils.wrapper_200(data=orders_dic)
         except Exception as e:
+            logger.error(traceback.format_exc())
             return response_utils.wrapper_500('获取订单记录失败，系统内部错误')
 
 
-# 获取个人订单详情
 class OrderDetail(View):
+    '''获取个人订单详情'''
+
     def get(self, request):
         try:
             user = request.user
             types = Goods().type.gets()
             order_no = request.GET.get('order_no')
 
-            data = {}
             if not user:
-                data['msg'] = '获取用户对象失败'
-                return render(request, 'ac_order/order_detail.html', data)
+                return render(request, 'ac_order/order_detail.html', {'msg': '获取用户对象失败'})
 
             order = Order().order.get(user=user, order_no=order_no)  # 条件：用户，订单号
             if not order:
-                data['msg'] = '获取订单信息失败'
-                return render(request, 'ac_order/order_detail.html', data)
+                return render(request, 'ac_order/order_detail.html', {'msg': '获取订单信息失败'})
 
             order_dic = {}
             order_dic.setdefault('order_no', order.order_no)
@@ -356,17 +371,19 @@ class OrderDetail(View):
             order_dic.setdefault('trade_no', order.trade_no)
             order_dic.setdefault('trade_type', order.get_pay_mode_display())
 
+            data = {}
             data['types'] = types
             data['name'] = user.name
             data['order_dic'] = order_dic
-
             return render(request, 'ac_order/order_detail.html', data)
         except Exception as e:
+            logger.error(traceback.format_exc())
             return render(request, 'error.html', {'error': '500'})
 
 
-# 单个订单所有商品信息
 class GoodsDetail(View):
+    '''单个订单所有商品信息'''
+
     def get(self, request):
         try:
             # 获取参数
@@ -398,12 +415,13 @@ class GoodsDetail(View):
                 good_list = [i for i in good_list]  # 将数据从Page对象中遍历出来
                 page_count = paginator.count  # 页码总数
             except Exception as e:
+                logger.error(traceback.format_exc())
                 return response_utils.wrapper_400('分页失败')
 
-            # 组装返回数据
-            goods_dic = {}
-            goods_dic['count'] = page_count
-            goods_dic['data'] = good_list
-            return response_utils.wrapper_200(data=goods_dic)
+            data = {}
+            data['count'] = page_count
+            data['data'] = good_list
+            return response_utils.wrapper_200(data=data)
         except Exception as e:
+            logger.error(traceback.format_exc())
             return response_utils.wrapper_500('获取订单详情信息失败，系统内部错误')

@@ -1,112 +1,125 @@
+import logging
+import traceback
+
 from django.shortcuts import render, HttpResponse, redirect
 from django.http import JsonResponse
-
-from ac_user.myforms import RegForms, ResetForms, PerForms
-from common.chackData import User, Order, Goods
 from django.db.models import Q
-
-from django.contrib.auth import login as logg
+from django.contrib.auth import login
 from django.contrib.auth.hashers import make_password
-from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator
 from django.contrib.auth import logout
+from django.core.paginator import Paginator
+from django.views import View
+from rest_framework.decorators import api_view
 
 from ACShop.settings import FROM, SUBJECT, HOST, APIKEY
+from ac_user.myforms import RegForms, ResetForms, PerForms
+from common.chackData import User, Order, Goods
 from common.utils import CustomBackend, gen_code_num, get_name
 from common.emails import to_send
 from common.yunpian import YunPian
 from common.pictureCode import gen_code
 from common import response_utils
 
-from django.views import View
+logger = logging.getLogger()
 
 
-class UserViewset(View):
+class Register(View):
     '''注册视图'''
 
     def get(self, request):
         return render(request, 'ac_user/register.html')
 
     def post(self, request):
-        response = {'status': 100, 'msg': None}
-        forms = RegForms(request, request.POST)
+        try:
+            forms = RegForms(request, request.POST)
 
-        if forms.is_valid():
+            if not forms.is_valid():
+                return response_utils.wrapper_400(forms.errors or '注册失败')
+
+            data = {}
             dic = forms.cleaned_data
             dic.pop('re_pwd')
             dic.pop('code')
-            User().user.create(**dic)
-            response['msg'] = '注册成功'
-            response['url'] = '/login/'
-        else:
-            response['status'] = 101
-            response['msg'] = '注册失败'
-            response['errors'] = forms.errors
-            print(forms.errors)
-        return JsonResponse(response)
+
+            resp = User().user.create(**dic)
+            if not resp:
+                return response_utils.wrapper_400('创建用户失败')
+
+            data['url'] = '/login/'
+            logger.info('{0}注册成功'.format(dic.get('username')))
+            return response_utils.wrapper_200(data=data)
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            return response_utils.wrapper_500('注册失败，系统内部错误！')
 
 
-class LoginViewset(View):
+class Login(View):
     '''登录视图'''
 
     def get(self, request):
         return render(request, 'ac_user/login.html')
 
     def post(self, request):
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        valid_code = request.POST.get('valid_code')
-        # 从session中取出验证码,跟提交的验证码做比较
-        # 忽略大小写
-        if valid_code.upper() == request.session['valid_code']:
-            auth = CustomBackend()  # 实例化自定义验证类
-            user = auth.authenticate(request, username=username, password=password)
-            if user:
+        try:
+            username = request.POST.get('username')
+            password = request.POST.get('password')
+            valid_code = request.POST.get('valid_code')
+            if not (username and password and valid_code):
+                return render(request, 'ac_user/login.html', {'error': 'username,password,valid_code参数缺失'})
+
+            # 从session中取出验证码,跟提交的验证码做比较，忽略大小写
+            if valid_code.upper() == request.session.get('valid_code'):
+                auth = CustomBackend()  # 自定义验证类
+                user = auth.authenticate(request, username=username, password=password)
+                if not user:
+                    return render(request, 'ac_user/login.html', {'error': '用户名或密码错误'})
+
                 print('验证成功.....')
-                logg(request, user)
+                login(request, user)
                 request.session['user'] = user.id
                 return redirect('/goods/index/')
             else:
-                error = '用户名或密码错误'
+                error = '验证码错误'
                 return render(request, 'ac_user/login.html', {'error': error})
-        else:
-            error = '验证码错误'
-            return render(request, 'ac_user/login.html', {'error': error})
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            return response_utils.wrapper_500('登录失败，系统内部错误！')
 
 
-# 登出
-def log_out(request):
-    logout(request)
-    return redirect('/login/')
+class ResetPwd(View):
+    '''重置密码'''
 
-
-# 重置密码
-class ResetPwdViewset(View):
     def get(self, request):
         return render(request, 'ac_user/reset_pwd.html')
 
     def post(self, request):
-        response = {'status': 100, 'msg': None}
+        try:
+            response = {'status': 100, 'msg': None}
 
-        forms = ResetForms(request, request.POST)
-        if forms.is_valid():
+            forms = ResetForms(request, request.POST)
+            if not forms.is_valid():
+                return response_utils.wrapper_400(forms.errors or '参数格式错误！')
+
             dic = forms.cleaned_data
             print(dic)
             email = dic['email']
             password = dic['password']
-            password = make_password(password)
-            User().user.gets(email=email).update(password=password)
+            password = make_password(password)  # 为密码加密
+            resp = User().user.gets(email=email).update(password=password)
+            if not resp:
+                return response_utils.wrapper_400('密码修改失败')
             response['msg'] = '密码修改成功'
             response['url'] = '/login/'
-        else:
-            response['status'] = 101
-            response['msg'] = '密码修改失败'
-            response['errors'] = forms.errors
-        return JsonResponse(response)
+
+            return response_utils.wrapper_200(data=response)
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            return response_utils.wrapper_500('修改密码失败，系统内部错误！')
 
 
-# 个人资料信息返回
-class PersonalViewset(View):
+class PersonalList(View):
+    '''个人资料信息返回'''
+
     def get(self, request):
         try:
             user = request.user
@@ -130,6 +143,7 @@ class PersonalViewset(View):
 
             return render(request, 'ac_user/personal.html', data)
         except Exception as e:
+            logger.error(traceback.format_exc())
             return render(request, 'error.html', {'error': 500})
 
     def post(self, request):
@@ -156,13 +170,14 @@ class PersonalViewset(View):
                 data['types'] = types
                 return render(request, 'ac_user/personal.html', data)
         except Exception as e:
+            logger.error(traceback.format_exc())
             return render(request, 'error.html', {'error': 500})
 
 
-# 购买信息页面返回
-@login_required(login_url='/login/')
-def payed(request):
-    if request.method == 'GET':
+class PayedPage(View):
+    '''购买信息页面返回'''
+
+    def get(self, request):
         try:
             name = get_name(request)
             types = Goods().type.gets()
@@ -172,11 +187,13 @@ def payed(request):
             data['types'] = types
             return render(request, 'ac_user/payed.html', data)
         except Exception as e:
+            logger.error(traceback.format_exc())
             return render(request, 'error.html', {'error': 500})
 
 
-# 购买信息数据返回
 class PayedList(View):
+    '''购买信息数据返回'''
+
     def get(self, request):
         try:
             user = request.user
@@ -185,7 +202,7 @@ class PayedList(View):
             if not user:
                 return response_utils.wrapper_400('获取用户对象失败')
 
-            orders = Order().order.gets(Q(trade_status=2)|Q(trade_status=3), user=user)
+            orders = Order().order.gets(Q(trade_status=2) | Q(trade_status=3), user=user)
             if not orders:
                 return response_utils.wrapper_400('无订单信息')
 
@@ -208,6 +225,7 @@ class PayedList(View):
                 account_list = [i for i in account_list]  # 将数据从Page对象中遍历出来
                 page_count = paginator.count
             except Exception as e:
+                logger.error(traceback.format_exc())
                 return response_utils.wrapper_400('分页失败')
 
             data = {}
@@ -215,57 +233,74 @@ class PayedList(View):
             data['count'] = page_count
             return response_utils.wrapper_200(data=data)
         except Exception as e:
+            logger.error(traceback.format_exc())
             return response_utils.wrapper_500('获取已购买商品信息失败，系统内部错误')
 
 
-# 获取图片验证码
+@api_view(['GET'])
+def log_out(request):
+    '''登出'''
+    try:
+        logout(request)
+        return redirect('/login/')
+    except Exception as e:
+        logger.error(traceback.format_exc())
+        return redirect('/login/')
+
+
+@api_view(['GET'])
 def get_code(request):
+    '''获取图片验证码'''
     try:
         data, code_str = gen_code()
         print(code_str)
         request.session['valid_code'] = code_str.upper()  # 把验证码放到session
         return HttpResponse(data)
     except Exception as e:
+        logger.error(traceback.format_exc())
         return HttpResponse('')
 
 
-# 发送邮件
+@api_view(['POST'])
 def send_email(request):
-    # 发送邮件
-    if request.method == 'POST':
-        try:
-            email = request.POST.get('email')
-            if not email:
-                return response_utils.wrapper_400('参数缺失email')
+    '''发送邮件'''
+    # if request.method == 'POST':
+    try:
+        email = request.POST.get('email')
+        if not email:
+            return response_utils.wrapper_400('参数缺失email')
 
-            ret = User().user.gets(email=email).exists()
-            if not ret:
-                return response_utils.wrapper_400('该邮箱未注册')
+        ret = User().user.gets(email=email).exists()
+        if not ret:
+            return response_utils.wrapper_400('该邮箱未注册')
 
-            code = gen_code_num(6)  # 生成6为数字验证码
-            print(code)
-            send_res, msg = to_send(code, email, FROM, SUBJECT, HOST)
-            if not send_res:
-                return response_utils.wrapper_400(msg)
+        code = gen_code_num(6)  # 生成6为数字验证码
+        print(code)
+        send_res, msg = to_send(code, email, FROM, SUBJECT, HOST)
+        if not send_res:
+            return response_utils.wrapper_400(msg)
 
-            request.session[email] = code
-            return response_utils.wrapper_200()
-        except Exception as e:
-            return response_utils.wrapper_500('发送邮件失败，系统内部错误')
+        request.session[email] = code
+        return response_utils.wrapper_200()
+    except Exception as e:
+        logger.error(traceback.format_exc())
+        return response_utils.wrapper_500('发送邮件失败，系统内部错误')
 
 
-# 发送短信验证码
+@api_view(['POST'])
 def code_auth(request):
-    if request.method == 'POST':
-        try:
-            phone = request.POST.get('phone')
-            code = gen_code_num(4)  # 调用生成随机验证码
-            print(code)
-            yun_pian = YunPian('APIKEY')  # 实例化
-            sms_status = yun_pian.send_sms(code, phone)  # 接收云片网发来的状态码，0表成功，其他代表错误
-            if sms_status['code'] != 0:  # ==0是才成功///记着改回来
-                request.session[phone] = code
-                return response_utils.wrapper_200()
-            return response_utils.wrapper_400('发送验证码失败')
-        except Exception as e:
-            return response_utils.wrapper_500('发送验证码失败，服务器内部错误')
+    '''发送短信验证码'''
+    # if request.method == 'POST':
+    try:
+        phone = request.POST.get('phone')
+        code = gen_code_num(4)  # 调用生成随机验证码
+        print(code)
+        yun_pian = YunPian('APIKEY')  # 实例化
+        sms_status = yun_pian.send_sms(code, phone)  # 接收云片网发来的状态码，0表成功，其他代表错误
+        if sms_status['code'] != 0:  # ==0是才成功///记着改回来
+            request.session[phone] = code
+            return response_utils.wrapper_200()
+        return response_utils.wrapper_400('发送验证码失败')
+    except Exception as e:
+        logger.error(traceback.format_exc())
+        return response_utils.wrapper_500('发送验证码失败，服务器内部错误')

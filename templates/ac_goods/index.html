@@ -14,7 +14,7 @@
         }
 
         .media {
-            width: 550px;
+            width: 500px;
             height: 200px;
             float: left;
             border-color: #828582;
@@ -136,42 +136,5 @@
                 <a class="layui-btn-disabled">< 下一页 </a>
             {% endif %}
         </div>
-
-
-{#    <script>#}
-{##}
-{#        function showRecord(pageNo, pageSize) {#}
-{#            $.get("${ctxPath}/score-record/showRecord",#}
-{#                {#}
-{#                    pageNo: pageNo,#}
-{#                    pageSize: pageSize#}
-{#                },#}
-{#                function (date) {#}
-{#                    //加载后台返回的List集合数据#}
-{##}
-{#                },#}
-{#                "json"#}
-{#            );#}
-{#        }#}
-{##}
-{##}
-{#        layui.use(['laypage', 'layer'], function () {#}
-{#            var laypage = layui.laypage#}
-{#                , layer = layui.layer;#}
-{#            var limit = 4;#}
-{##}
-{#            //总页数大于页码总数#}
-{#            laypage.render({#}
-{#                elem: 'demo1'#}
-{#                , count: 10 //数据总数#}
-{#                , limit: 4 //每页显示条数#}
-{#                , jump: function (obj, first) {#}
-{#                    if (!first) {#}
-{#                        location.href = '/goods/index/?page_id=' + obj.curr + '&limit=' + limit;#}
-{#                    }#}
-{#                }#}
-{#            });#}
-{#        })#}
-{#    </script>#}
 
 {% endblock content %}
