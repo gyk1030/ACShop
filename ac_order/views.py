@@ -336,10 +336,7 @@ class OrderList(View):
                 logger.error(traceback.format_exc())
                 return response_utils.wrapper_400('分页失败')
 
-            orders_dic = {}
-            orders_dic['count'] = page_count
-            orders_dic['data'] = order_list
-            return response_utils.wrapper_200(data=orders_dic)
+            return response_utils.wrapper_200(data=order_list, args=('count', page_count))
         except Exception as e:
             logger.error(traceback.format_exc())
             return response_utils.wrapper_500('获取订单记录失败，系统内部错误')
@@ -421,7 +418,7 @@ class GoodsDetail(View):
             data = {}
             data['count'] = page_count
             data['data'] = good_list
-            return response_utils.wrapper_200(data=data)
+            return response_utils.wrapper_200(data=good_list, args=('count', page_count))
         except Exception as e:
             logger.error(traceback.format_exc())
             return response_utils.wrapper_500('获取订单详情信息失败，系统内部错误')

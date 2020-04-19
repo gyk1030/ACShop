@@ -30,8 +30,6 @@ class CommForms(forms.Form):
         elif password and re_pwd:
             password = make_password(password)  # 为新密码加密
             self.cleaned_data['password'] = password
-        else:
-            raise ValidationError('密码不能为空')
         return self.cleaned_data
 
 

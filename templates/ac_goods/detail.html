@@ -1,42 +1,51 @@
 {% extends 'base.html' %}
 {% block css %}
     <style>
-        .wrapper{
+        .wrapper {
             padding-left: 200px;
         }
-        h3{
+
+        h3 {
             margin-top: 0;
         }
-        .detail-top{
+
+        .detail-top {
             height: 150px;
         }
-        .detail-content{
+
+        .detail-content {
             width: 700px;
             height: 230px;
-            {#width: 100%;#}
+        {#width: 100%;#}
         }
-        .content-img{
+
+        .content-img {
             float: left;
 
         }
-        .content-info{
+
+        .content-info {
             float: left;
             margin-left: 30px;
         }
-        .btn{
+
+        .btn {
             width: 200px;
             margin-top: 30px;
             margin-left: 200px;
         }
-        .info-title,.info-list{
+
+        .info-title, .info-list {
             border-bottom-color: #a4a6a4;
-            border-bottom-style:solid;
-            border-width:1px;
+            border-bottom-style: solid;
+            border-width: 1px;
         }
-        .info-input{
+
+        .info-input {
             padding-top: 5px;
         }
-        .errors{
+
+        .errors {
             float: right;
             color: #b30f0b;
         }
@@ -66,29 +75,35 @@
                 <div class="content-img">
                     <img src="/media/{{ avatar }}" alt="" width=300 height=170>
                 </div>
-                <div class="content-info" >
+                <div class="content-info">
                     <div class="info-title" style="text-align: center;">
                         <h3>{{ title }}</h3>
                     </div>
                     <div class="info-list">
                         类型选择：
-                        <ul>
-                            {% for level in level_list %}
+                        <ul style="text-align: center">
+                            {% if level_list %}
+                                {% for level in level_list %}
 
-                                <li>
-                                    <input type="radio" onclick="" name="price_id" value={{ level.price_id }} id="{{ level }}">
-                                    <label for="{{ level }}">
-                                        <span>{{ level.level }}&nbsp;&nbsp;</span>
-                                        <span>库存 {{ level.count }}个&nbsp;&nbsp;</span>
-                                        <span>{{ level.price }}{{ level.units }}</span>
-                                    </label>
-                                </li>
+                                    <li>
+                                        <input type="radio" onclick="" name="price_id"
+                                               value={{ level.price_id }} id="{{ level }}">
+                                        <label for="{{ level }}">
+                                            <span>{{ level.level }}&nbsp;&nbsp;</span>
+                                            <span>库存 {{ level.count }}个&nbsp;&nbsp;</span>
+                                            <span>{{ level.price }}{{ level.units }}</span>
+                                        </label>
+                                    </li>
 
-                            {% endfor %}
+                                {% endfor %}
+                            {% else %}
+                                无数据
+                            {% endif %}
+
                         </ul>
                     </div>
                     <div class="info-input">
-                        购买数量：<input type="text" class="num_show" name="count" style="width: 100px" >个&nbsp;
+                        购买数量：<input type="text" class="num_show" name="count" style="width: 100px">个&nbsp;
                         共计：元
                     </div>
                     {% if error.status == 101 %}

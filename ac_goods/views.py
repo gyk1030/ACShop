@@ -19,7 +19,7 @@ class GoodsList(View):
         try:
             name = get_name(request)
             page_id = request.GET.get('page_id', '1')  # 当前页
-            limit = request.GET.get('limit', '5')  # 每页显示条数
+            limit = request.GET.get('limit', '4')  # 每页显示条数
             has_previous = False    # 是否有前一页
             has_next = False        # 是否有后一页
             types = Goods().type.gets()

@@ -65,14 +65,14 @@ class Login(View):
             password = request.POST.get('password')
             valid_code = request.POST.get('valid_code')
             if not (username and password and valid_code):
-                return render(request, 'ac_user/login.html', {'error': 'username,password,valid_code参数缺失'})
+                return render(request, 'ac_user/login.html', {'error': '参数缺失!'})
 
             # 从session中取出验证码,跟提交的验证码做比较，忽略大小写
             if valid_code.upper() == request.session.get('valid_code'):
                 auth = CustomBackend()  # 自定义验证类
                 user = auth.authenticate(request, username=username, password=password)
                 if not user:
-                    return render(request, 'ac_user/login.html', {'error': '用户名或密码错误'})
+                    return render(request, 'ac_user/login.html', {'error': '用户名或密码错误!'})
 
                 print('验证成功.....')
                 login(request, user)
@@ -159,6 +159,8 @@ class PersonalList(View):
             if forms.is_valid():
                 forms.cleaned_data.pop('old_pwd')
                 forms.cleaned_data.pop('re_pwd')
+                if not forms.cleaned_data.get('password'):
+                    forms.cleaned_data.pop('password')
                 User().user.gets(username=user).update(**forms.cleaned_data)
                 return redirect('/users/personal/')
             else:
@@ -207,11 +209,13 @@ class PayedList(View):
                 return response_utils.wrapper_400('无订单信息')
 
             accounts_list = []
+            index = 0
             for order in orders:
-                for index, account in enumerate(order.account.all()):
+                for account in order.account.all():
+                    index += 1
                     account_dic = {}
                     info = str(account.price).split(':')
-                    account_dic.setdefault('id', index + 1)
+                    account_dic.setdefault('id', index)
                     account_dic.setdefault('order_no', order.order_no)
                     account_dic.setdefault('type', info[0])
                     account_dic.setdefault('account_str', account.account_str)
@@ -228,10 +232,7 @@ class PayedList(View):
                 logger.error(traceback.format_exc())
                 return response_utils.wrapper_400('分页失败')
 
-            data = {}
-            data['data'] = account_list
-            data['count'] = page_count
-            return response_utils.wrapper_200(data=data)
+            return response_utils.wrapper_200(data=account_list, args=('count', page_count))
         except Exception as e:
             logger.error(traceback.format_exc())
             return response_utils.wrapper_500('获取已购买商品信息失败，系统内部错误')
