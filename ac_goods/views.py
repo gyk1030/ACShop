@@ -13,6 +13,7 @@ from common.utils import get_new_no,get_name
 
 logger = logging.getLogger()
 
+
 class GoodsList(View):
     '''主页面'''
     def get(self, request):
@@ -103,6 +104,7 @@ class GoodsDetail(View):
                     level_dic = {}
                     level_dic.setdefault('level', level.name)
                     unit = price.unit
+
                     units = price.get_currency_display() + '/' + unit  # 构造单位：人民币/个
                     level_dic.setdefault('price', price.price)
                     level_dic.setdefault('count', price.account.filter(isSale=0).count())
@@ -116,9 +118,9 @@ class GoodsDetail(View):
             data['avatar'] = avatar
             data['type_id'] = type_id
             data['error'] = error
-
             return render(request, 'ac_goods/detail.html', data)
         except Exception as e:
+            logger.error(traceback.format_exc())
             return render(request, 'error.html', {'error': 500})
 
     @transaction.atomic()
@@ -167,6 +169,7 @@ class GoodsDetail(View):
             info['msg'] = '订单生成失败'
             return self.get(request, type_id, info)
         except Exception as e:
+            logger.error(traceback.format_exc())
             return render(request, 'error.html', {'error': 500})
 
     def create_order(self,order_data):
@@ -193,5 +196,6 @@ class GoodsDetail(View):
                 i.save()
             return True
         except Exception as e:
+            logger.error(traceback.format_exc())
             return False
 

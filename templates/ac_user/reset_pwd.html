@@ -14,15 +14,16 @@
 
         .box {
             width: 400px;
-            height: 330px;
+            height: 350px;
             background-color: #f7f7f7;
             position: absolute;
             left: 50%;
-            margin-top: 120px; /* 高度的一半 */
+            margin-top: 100px; /* 高度的一半 */
             margin-left: -200px; /* 宽度的一半 */
             padding-left: 53px;
             padding-top: 20px;
             border-radius: 5px;
+
         }
 
         .form-control {
@@ -70,13 +71,12 @@
         <span class="errors re_pwd"></span>
         {#        <div class="form-group">#}
         <div class="row">
-            <div class="col-md-6" style="padding-right: 0">
-                <input style="width: 180px" class="form-control valid_code" required placeholder="输入验证码" name="code">
+            <div class="col-md-6">
+                <input style="width: 160px" class="form-control valid_code" required placeholder="输入验证码" name="code">
             </div>
-            <div class="col-md-6" style="padding-left: 25px; margin-top: 25px">
-                <a href="" >点击发送验证码</a>
-{#                <button type="button" class="form-control" style=" height:30px; width:130px " id="code_btn">点击发送验证码#}
-{#                </button>#}
+            <div class="col-md-6" style="margin-left: -8px">
+                <button type="button" class="form-control" style=" height:30px; width:130px " id="code_btn">点击发送验证码
+                </button>
             </div>
         </div>
         <span class="errors code"></span>

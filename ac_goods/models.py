@@ -5,7 +5,7 @@ import datetime
 delay = datetime.datetime.now()+datetime.timedelta(hours=8)
 
 class TypeInfo(models.Model):
-    avatar = models.FileField(upload_to='avatar/',default='avatar/default.jpg')
+    avatar = models.FileField(upload_to='avatar/',default='avatar/default.jpg',verbose_name='头像')
     title = models.CharField(max_length=20,verbose_name='类型',unique=True)
     isDelete = models.BooleanField(default=False,verbose_name='是否删除')
     description = models.CharField(max_length=255,verbose_name='类型简介')

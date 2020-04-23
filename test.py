@@ -1,4 +1,3 @@
-
 # def a(z=None):
 #     print(z)
 #
@@ -11,9 +10,12 @@
 # print(b)
 
 
-def test(a=()):
-    res = dict()
-    res[a[0]] = a[1]
-    print(res)
+def test(data,args):
+    a = {}
+    a['data'] = data
+    if args:
+        a[args[0]] = args[1]
+    print(a)
+    # print(kwargs)
 
-test(a=(1,2))
+test([1,2,3],args=('a','123'))

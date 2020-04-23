@@ -62,7 +62,7 @@ class OrderPayView(View):
         try:
             # 参数校验
             user = request.user
-            order_no = request.data.get('order_no')
+            order_no = request.POST.get('order_no')
             if not user:
                 return response_utils.wrapper_400('获取用户对象失败')
             if not order_no:
@@ -336,7 +336,9 @@ class OrderList(View):
                 logger.error(traceback.format_exc())
                 return response_utils.wrapper_400('分页失败')
 
-            return response_utils.wrapper_200(data=order_list, args=('count', page_count))
+            # orders_dic = {}
+            # orders_dic['data'] = order_list
+            return response_utils.wrapper_200(data=order_list, args=('count',page_count))
         except Exception as e:
             logger.error(traceback.format_exc())
             return response_utils.wrapper_500('获取订单记录失败，系统内部错误')
@@ -418,7 +420,7 @@ class GoodsDetail(View):
             data = {}
             data['count'] = page_count
             data['data'] = good_list
-            return response_utils.wrapper_200(data=good_list, args=('count', page_count))
+            return response_utils.wrapper_200(data=data)
         except Exception as e:
             logger.error(traceback.format_exc())
             return response_utils.wrapper_500('获取订单详情信息失败，系统内部错误')

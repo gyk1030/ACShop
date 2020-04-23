@@ -4,7 +4,7 @@ def wrapper_200(data=None, msg="", args=()):
     resp_data = dict()
     resp_data["code"] = 0
     resp_data["msg"] = msg
-    if args:
+    if args and isinstance(args, tuple):
         resp_data[args[0]] = args[1]
     if not data:
         data = {}
@@ -22,7 +22,7 @@ def wrapper_400(msg=""):
 def wrapper_500(msg=""):
     resp_data = dict()
     resp_data["code"] = 500
-    resp_data["msg"] = msg
+    resp_data["errMsg"] = msg
     return JsonResponse(resp_data)
 
 
