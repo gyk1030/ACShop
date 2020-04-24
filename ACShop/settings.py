@@ -83,7 +83,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'acshop',
         'USER': 'root',
-        'PASSWORD': '123456',
+        'PASSWORD': '654321',
         'HOST': '127.0.0.1',
         'PORT': 3306
     }
@@ -169,3 +169,14 @@ EXCEPT_URL_GET = ['/goods/index/','/goods/detail/','/users/get_code/','/uses/sen
 # 订单/支付二维码超时时间(min)
 ORDER_TIMEOUT = 2
 TIME_OUT_EXPRESS = 2
+
+
+# celery相关配置
+BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 43200}  # 设置超时时间，一定要设置
+BACKEND='redis://127.0.0.1:6379/3'
+BROKER='redis://127.0.0.1:6379/4'
+
+
+# 日志相关配置
+LOG_NAME = 'acshop.log'
+LOG_PATH = BASE_DIR + '/log/' + LOG_NAME

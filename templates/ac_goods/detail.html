@@ -16,7 +16,6 @@
         .detail-content {
             width: 700px;
             height: 230px;
-        {#width: 100%;#}
         }
 
         .content-img {
@@ -81,7 +80,7 @@
                     </div>
                     <div class="info-list">
                         类型选择：
-                        <ul style="text-align: center">
+                        <ul>
                             {% if level_list %}
                                 {% for level in level_list %}
 
@@ -97,7 +96,7 @@
 
                                 {% endfor %}
                             {% else %}
-                                暂无数据
+                                <li style="text-align: center">暂无数据</li>
                             {% endif %}
 
                         </ul>

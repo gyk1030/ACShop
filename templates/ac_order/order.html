@@ -80,7 +80,7 @@
 
             if (lefttime < 0) {
                 clearInterval(sh);
-                window.location.replace("/order/kill_order/?order_no={{ order_data.order_no }}");
+                window.location.replace("/order/ordered/");
             }
         }
 
@@ -124,12 +124,8 @@
             {% csrf_token %}
             <div class="common_list_con clearfix">
                 <div class="pay_style_con clearfix">
-                    <input type="radio" name="pay_style" id="weixin" value="WEIXIN">
-                    <label for="weixin" class="weixin">微信支付</label>
                     <input type="radio" name="pay_style" id="alipay" value="ALIPAY">
                     <label for="alipay" class="alipay"></label>
-                    <input type="radio" name="pay_style" id="bank" value="BANK">
-                    <label for="bank" class="bank">银行卡支付</label>
                 </div>
             </div>
 

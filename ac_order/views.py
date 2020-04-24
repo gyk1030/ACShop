@@ -14,8 +14,9 @@ from common import response_utils
 from common.utils import get_name
 from ac_order.PAY.alipay import AliPay
 from ACShop.settings import ORDER_TIMEOUT, TIME_OUT_EXPRESS
+from common.logg import Logger
 
-logger = logging.getLogger()
+logger = Logger()
 
 
 class OrderPayView(View):
@@ -311,7 +312,7 @@ class OrderList(View):
 
             orders = Order().order.gets(user=user)  # 条件：用户
             if not orders:
-                return response_utils.wrapper_400('获取订单信息失败')
+                return response_utils.wrapper_400('无订单信息')
 
             orders_list = []
             for index, order in enumerate(orders):
@@ -336,8 +337,6 @@ class OrderList(View):
                 logger.error(traceback.format_exc())
                 return response_utils.wrapper_400('分页失败')
 
-            # orders_dic = {}
-            # orders_dic['data'] = order_list
             return response_utils.wrapper_200(data=order_list, args=('count',page_count))
         except Exception as e:
             logger.error(traceback.format_exc())
@@ -394,7 +393,7 @@ class GoodsDetail(View):
             accounts = Goods().account.gets(Q(order__trade_status=2) | Q(order__trade_status=3),
                                             order__order_no=order_no)
             if not accounts:
-                return response_utils.wrapper_400('获取商品信息失败')
+                return response_utils.wrapper_400('无商品信息')
 
             goods_list = []
             for index, account in enumerate(accounts):

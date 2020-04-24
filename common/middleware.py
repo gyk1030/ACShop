@@ -10,6 +10,8 @@ class AuthenticateMiddleware(MiddlewareMixin):
     '''用户认证'''
     def process_request(self,request):
         user = request.user
+        # if request.path.startswith('/admin/'):
+        #     return None
         for i in EXCEPT_URL_POST:
             if re.findall(i,request.path):
                 return None

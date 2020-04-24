@@ -10,6 +10,7 @@ from django.views import View
 from ac_goods.myforms import OrderForms
 from common.chackData import Goods,Order
 from common.utils import get_new_no,get_name
+from .celery_task import kill_order_task
 
 logger = logging.getLogger()
 
@@ -176,7 +177,18 @@ class GoodsDetail(View):
         '''创建订单'''
         if order_data:
             try:
-                return Order().order.create(**order_data)
+                res = Order().order.create(**order_data)
+                order_no = order_data['order_no']
+
+                # 设定超时删除订单
+                ctime = datetime.datetime.now()  # 当前时间
+                utc_time = datetime.datetime.utcfromtimestamp(ctime.timestamp())  # 转成本地时间
+                time_delta = datetime.timedelta(seconds=2*60)  # 设置延时2min
+                task_time = utc_time + time_delta  # 设定时间点为2min后
+                cel_no = kill_order_task.kill_order.apply_async(args=[order_no], eta=task_time)
+                print(cel_no)
+
+                return res
             except Exception:
                 return False
         else:
