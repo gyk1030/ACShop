@@ -22,10 +22,14 @@
 
 
 
-import redis
+# import redis
+#
+# # 普通连接
+# conn = redis.Redis(host="127.0.0.1", port=6379)
+# conn.set("x1","hello",ex=5) # ex代表seconds，px代表ms
+# val = conn.get("x1")
+# print(val)
 
-# 普通连接
-conn = redis.Redis(host="127.0.0.1", port=6379)
-conn.set("x1","hello",ex=5) # ex代表seconds，px代表ms
-val = conn.get("x1")
-print(val)
+a = '6/2(1+2)'
+
+print(eval(a))

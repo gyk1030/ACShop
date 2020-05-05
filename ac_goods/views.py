@@ -1,6 +1,7 @@
-import logging
 import traceback
 import datetime
+import threading
+import time
 
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
@@ -8,22 +9,25 @@ from django.db import transaction
 from django.views import View
 
 from ac_goods.myforms import OrderForms
-from common.chackData import Goods,Order
-from common.utils import get_new_no,get_name
-from .celery_task import kill_order_task
+from common.chackData import Goods, Order
+from common.utils import get_new_no, get_name
+from common.logg import Logger
+from ac_goods import kill_order_task
+from ACShop.settings import ORDER_TIMEOUT
 
-logger = logging.getLogger()
-
+logger = Logger()
+current_time = datetime.datetime.now()
 
 class GoodsList(View):
     '''主页面'''
+
     def get(self, request):
         try:
             name = get_name(request)
             page_id = request.GET.get('page_id', '1')  # 当前页
             limit = request.GET.get('limit', '4')  # 每页显示条数
-            has_previous = False    # 是否有前一页
-            has_next = False        # 是否有后一页
+            has_previous = False  # 是否有前一页
+            has_next = False  # 是否有后一页
             types = Goods().type.gets()
 
             if not (page_id.isdigit() and limit.isdigit()):
@@ -38,11 +42,12 @@ class GoodsList(View):
 
             type_list = []
             for type in types:
-                data_dic = {}   # 存放每个类型下的所有信息
-                sum = 0         # 每个类型下的账号总数
+                data_dic = {}  # 存放每个类型下的所有信息
+                sum = 0  # 每个类型下的账号总数
                 for i in type.price.filter():
-                    count1 = i.account.filter(isSale=0).count()
-                    sum += count1
+                    # count = i.account.filter(isSale=0, sale_time__lt=current_time).count()
+                    count = i.account.filter(isSale=0).count()
+                    sum += count
                 data_dic.setdefault('title', type.title)
                 data_dic.setdefault('description', type.description)
                 data_dic.setdefault('sum', sum)
@@ -75,6 +80,7 @@ class GoodsList(View):
 
 class GoodsDetail(View):
     '''详情页面'''
+
     def get(self, request, type_id=None, *args):
         try:
             # 获取数据
@@ -108,6 +114,7 @@ class GoodsDetail(View):
 
                     units = price.get_currency_display() + '/' + unit  # 构造单位：人民币/个
                     level_dic.setdefault('price', price.price)
+                    # level_dic.setdefault('count', price.account.filter(isSale=0, sale_time__lt=current_time).count())
                     level_dic.setdefault('count', price.account.filter(isSale=0).count())
                     level_dic.setdefault('units', units)
                     level_dic.setdefault('price_id', price.pk)
@@ -165,6 +172,7 @@ class GoodsDetail(View):
                 if create_res and dispatch_res:
                     return redirect('/order/order_pay/?order_no={}'.format(order_no))
             except Exception as e:
+                logger.error(traceback.format_exc())
                 transaction.savepoint_rollback(tran_id)  # 期间出错，全部回滚
             info['status'] = 101
             info['msg'] = '订单生成失败'
@@ -173,41 +181,68 @@ class GoodsDetail(View):
             logger.error(traceback.format_exc())
             return render(request, 'error.html', {'error': 500})
 
-    def create_order(self,order_data):
+    def create_order(self, order_data):
         '''创建订单'''
         if order_data:
             try:
                 res = Order().order.create(**order_data)
                 order_no = order_data['order_no']
 
-                # 设定超时删除订单
-                ctime = datetime.datetime.now()  # 当前时间
-                utc_time = datetime.datetime.utcfromtimestamp(ctime.timestamp())  # 转成本地时间
-                time_delta = datetime.timedelta(seconds=2*60)  # 设置延时2min
-                task_time = utc_time + time_delta  # 设定时间点为2min后
-                cel_no = kill_order_task.kill_order.apply_async(args=[order_no], eta=task_time)
-                print(cel_no)
+                # celery延时任务，设定超时删除订单
+                # ctime = datetime.datetime.now()  # 当前时间
+                # utc_time = datetime.datetime.utcfromtimestamp(ctime.timestamp())  # 转成本地时间
+                # time_delta = datetime.timedelta(seconds=ORDER_TIMEOUT * 60)  # 设置延时
+                # task_time = utc_time + time_delta  # 设定时间点
+                # cel_no = kill_order_task.kill_order.apply_async(args=[order_no], eta=task_time)
+                # print(cel_no)
 
+                # 多线程处理延时任务
+                self.kill_order_thread = threading.Thread(target=self.kill_order,args=(order_no,))
+                self.kill_order_thread.start()
                 return res
             except Exception:
                 return False
         else:
             return False
 
-    def dispatch_account(self,order_no):
+    def kill_order(self, order_no):
+        time.sleep(ORDER_TIMEOUT*60)
+        try:
+            order = Order().order.get(order_no=order_no)
+            if not order:
+                print('order is not exist')
+
+            if order.trade_status in (2, 3):
+                logger.info(order.trade_status)
+                print('order:{} status is {}'.format(order_no, order.trade_status))
+
+            # 过期订单标记删除
+            Order().order.delete(order_no=order_no)
+            logger.info('kill order {} successfully'.format(order_no))
+
+            # 修改账号状态为未出售
+            goods = Goods().account.gets(order__order_no=order_no)
+            for good in goods:
+                good.isSale = 0
+                good.save()
+            print('kill order {} successful'.format(order_no))
+        except Exception:
+            logger.error(traceback.format_exc())
+            print(traceback.format_exc())
+
+    def dispatch_account(self, order_no):
         '''分配账号信息'''
-        time_now = datetime.datetime.now()
         order = Order().order.get(order_no=order_no)
         count = int(order.count)
         try:
-            account_list = Goods().account.gets(price=order.price, isSale=0, allow_sale_time__lt=time_now).order_by('add_time')[:count]
+            # account_list = Goods().account.gets(price=order.price, isSale=0, allow_sale_time__lt=current_time).order_by(
+            account_list = Goods().account.gets(price=order.price, isSale=0).order_by('add_time')[:count]
             for i in account_list:
                 i.order = order
                 i.isSale = 2
-                i.sale_time = time_now
+                i.sale_time = current_time
                 i.save()
             return True
         except Exception as e:
             logger.error(traceback.format_exc())
             return False
-

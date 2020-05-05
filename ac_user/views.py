@@ -1,8 +1,6 @@
-import logging
 import traceback
 
 from django.shortcuts import render, HttpResponse, redirect
-from django.http import JsonResponse
 from django.db.models import Q
 from django.contrib.auth import login
 from django.contrib.auth.hashers import make_password
@@ -19,8 +17,9 @@ from common.emails import to_send
 from common.yunpian import YunPian
 from common.pictureCode import gen_code
 from common import response_utils
+from common.logg import Logger
 
-logger = logging.getLogger()
+logger = Logger()
 
 
 class Register(View):
@@ -32,7 +31,6 @@ class Register(View):
     def post(self, request):
         try:
             forms = RegForms(request, request.POST)
-
             if not forms.is_valid():
                 return response_utils.wrapper_400(forms.errors or '注册失败')
 

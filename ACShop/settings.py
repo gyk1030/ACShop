@@ -83,7 +83,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'acshop',
         'USER': 'root',
-        'PASSWORD': '654321',
+        'PASSWORD': '123456',
         'HOST': '127.0.0.1',
         'PORT': 3306
     }
@@ -157,7 +157,6 @@ APP_ID = '2016101000651666'
 APP_PRIVATE_KEY_PATH = 'ac_order/KEYS/app-private-2048.txt'  # 应用私钥
 ALIPAY_PUBLIC_KEY_PATH = 'ac_order/KEYS/alipay-public-2048.txt'  #支付宝公钥
 RETURN_URL = 'http://127.0.0.1:8000/order/Pay/'  # 同步回调地址
-# RETURN_URL = None  # 同步回调地址
 NOTIFY_URL = 'http://127.0.0.1:8000/goods/index/'  # 异步回调地址
 
 
@@ -167,7 +166,7 @@ EXCEPT_URL_GET = ['/goods/index/','/goods/detail/','/users/get_code/','/uses/sen
                   '/users/reset_pwd/','/static/.*','/media/.*','/admin/.*',]
 
 # 订单/支付二维码超时时间(min)
-ORDER_TIMEOUT = 2
+ORDER_TIMEOUT = 0.5
 TIME_OUT_EXPRESS = 2
 
 
@@ -179,4 +178,12 @@ BROKER='redis://127.0.0.1:6379/4'
 
 # 日志相关配置
 LOG_NAME = 'acshop.log'
-LOG_PATH = BASE_DIR + '/log/' + LOG_NAME
+LOG_PATH = os.path.join(BASE_DIR , 'log' , LOG_NAME)
+
+
+# 是否为linux环境
+LINUX_ENV = False
+
+
+# 允许售卖延时时间（h）
+ALLOW_SALE_TIME = 8

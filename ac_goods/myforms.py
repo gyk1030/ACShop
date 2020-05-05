@@ -1,7 +1,9 @@
+import datetime
 from django import forms
 from django.core.exceptions import ValidationError
 from ac_goods.models import UnitPrice
 
+current_time = datetime.datetime.now()
 
 class OrderForms(forms.Form):
     '''订单数据校验'''
@@ -18,6 +20,7 @@ class OrderForms(forms.Form):
             obj = UnitPrice.objects.filter(pk=self.price_id,isDelete=False).first()
             if obj:
                 price = obj.price
+                # self.num_sum = obj.account.filter(isSale=0, sale_time__lt=current_time).count()
                 self.num_sum = obj.account.filter(isSale=0).count()
                 return self.price_id,price
         raise ValidationError('输入有误')
@@ -30,7 +33,6 @@ class OrderForms(forms.Form):
             else:
                 raise ValidationError('库存不足')
         raise ValidationError('输入有误')
-
 
 
 

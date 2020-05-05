@@ -1,5 +1,7 @@
 
 import logging
+import os
+from ACShop.settings import LINUX_ENV
 from ACShop.settings import LOG_PATH
 
 
@@ -11,6 +13,17 @@ class _Logging(object):
     critical = logging.CRITICAL
 
     def __init__(self, level):
+        if not os.path.exists(LOG_PATH):  # 无文件时创建
+            if LINUX_ENV:
+                path = '/'.join(LOG_PATH.split('/')[:-1])
+            else:
+                path = '\\'.join(LOG_PATH.split('\\')[:-1])
+            if not os.path.isdir(path): # 路径不存在时创建
+                os.mkdir(path)
+
+            f = open(LOG_PATH,'w',encoding='utf-8')
+            f.close()
+
         self._fileHandler = logging.FileHandler(LOG_PATH, 'a',
                                                 encoding='utf-8')  # 指定保存文件路径
         self._fileHandler.setFormatter(

@@ -1,4 +1,3 @@
-import logging
 import traceback
 import datetime
 import time
@@ -344,7 +343,7 @@ class OrderList(View):
 
 
 class OrderDetail(View):
-    '''获取个人订单详情'''
+    '''获取个人订单详情页面'''
 
     def get(self, request):
         try:
@@ -380,7 +379,7 @@ class OrderDetail(View):
 
 
 class GoodsDetail(View):
-    '''单个订单所有商品信息'''
+    '''单个订单所有数据返回'''
 
     def get(self, request):
         try:
@@ -416,10 +415,7 @@ class GoodsDetail(View):
                 logger.error(traceback.format_exc())
                 return response_utils.wrapper_400('分页失败')
 
-            data = {}
-            data['count'] = page_count
-            data['data'] = good_list
-            return response_utils.wrapper_200(data=data)
+            return response_utils.wrapper_200(data=good_list, args=('count',page_count))
         except Exception as e:
             logger.error(traceback.format_exc())
             return response_utils.wrapper_500('获取订单详情信息失败，系统内部错误')
