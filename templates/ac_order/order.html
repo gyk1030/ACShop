@@ -9,9 +9,7 @@
         th, td {border: 1px solid #353535;height: 30px;}
         img {border-radius: 10px;}
 
-        .pay_style_con .weixin {background: url(/static/img/pay_icons.png) 6px -36px no-repeat #fff;}
         .pay_style_con .alipay {background: url(/static/img/pay_icons.png) 12px -72px no-repeat #fff;width: 100px;height: 38px}
-        .pay_style_con .bank {background: url(/static/img/pay_icons.png) 6px -108px no-repeat #fff;}
 
         .common_list_con {
             width: 900px;
@@ -50,8 +48,8 @@
             };
             $.post('/order/order_pay/', params, function (data) {
                 console.log('sdfds');
-                if (data.status == 1) {
-                    window.location.replace(data.url);
+                if (data.code == 0) {
+                    window.location.replace(data.data.url);
                     {#$.post('/order/chack/', params, function (data) {#}
                     {#    alert(data.msg);#}
                         {#if (data.status == 1) {#}

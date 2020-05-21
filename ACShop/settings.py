@@ -154,6 +154,7 @@ FROM = '13572551532@163.com'  # 设置发件人邮箱
 
 # 支付相关配置
 APP_ID = '2016101000651666'
+ALIPAY_GETWAY = 'https://openapi.alipaydev.com/gateway.do'
 APP_PRIVATE_KEY_PATH = 'ac_order/KEYS/app-private-2048.txt'  # 应用私钥
 ALIPAY_PUBLIC_KEY_PATH = 'ac_order/KEYS/alipay-public-2048.txt'  #支付宝公钥
 RETURN_URL = 'http://127.0.0.1:8000/order/Pay/'  # 同步回调地址
@@ -161,9 +162,9 @@ NOTIFY_URL = 'http://127.0.0.1:8000/goods/index/'  # 异步回调地址
 
 
 # 不进行身份验证url
-EXCEPT_URL_POST = ['/login/','/register/','/users/code_auth/','/admin/.*',]
+EXCEPT_URL = ['/login/','/register/','/users/code_auth/','/acshop/admin.*',]
 EXCEPT_URL_GET = ['/goods/index/','/goods/detail/','/users/get_code/','/uses/send_email/',
-                  '/users/reset_pwd/','/static/.*','/media/.*','/admin/.*',]
+                  '/users/reset_pwd/','/static/.*','/media/.*',]
 
 # 订单/支付二维码超时时间(min)
 ORDER_TIMEOUT = 0.5

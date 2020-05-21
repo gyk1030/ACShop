@@ -212,9 +212,9 @@ class GoodsDetail(View):
             if not order:
                 print('order is not exist')
 
-            if order.trade_status in (2, 3):
+            if order.trade_status in (0, 2, 3):  # 交易状态为待支付/交易成功/交易完成则
                 logger.info(order.trade_status)
-                print('order:{} status is {}'.format(order_no, order.trade_status))
+                print('execute celery Failure:order {} status is {}'.format(order_no, order.trade_status))
 
             # 过期订单标记删除
             Order().order.delete(order_no=order_no)

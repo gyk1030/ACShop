@@ -2,7 +2,7 @@
 
 from django.shortcuts import redirect
 from django.utils.deprecation import MiddlewareMixin
-from ACShop.settings import EXCEPT_URL_GET,EXCEPT_URL_POST
+from ACShop.settings import EXCEPT_URL_GET,EXCEPT_URL
 import re
 
 
@@ -12,7 +12,7 @@ class AuthenticateMiddleware(MiddlewareMixin):
         user = request.user
         # if request.path.startswith('/admin/'):
         #     return None
-        for i in EXCEPT_URL_POST:
+        for i in EXCEPT_URL:
             if re.findall(i,request.path):
                 return None
         for i in EXCEPT_URL_GET:  # 部分页面只放行get请求

@@ -10,7 +10,7 @@ class OrderInfo(models.Model):
     count = models.IntegerField()  # 商品数量
     add_time = models.DateTimeField(auto_now=True,verbose_name='生成时间')  # 生成时间
     Trade_Choice = ((0,'等待支付'),(1,'交易超时'),(2,'交易成功'),(3,'交易完毕'))  # (等待支付，交易超时或支付后退款，交易成功，交易成功不可退款)
-    trade_status = models.IntegerField(choices=Trade_Choice,default=0,verbose_name='交易状态')  # 交易状态
+    trade_status = models.IntegerField(choices=Trade_Choice,default=1,verbose_name='交易状态')  # 交易状态
     trade_no = models.CharField(max_length=36,verbose_name='交易号')  # 交易号
     Pay_Choice = ((0,'支付宝'),(1,'微信'),(2,'银行卡'))
     pay_mode = models.IntegerField(choices=Pay_Choice,default=0,verbose_name='支付方式')

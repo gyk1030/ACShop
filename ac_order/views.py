@@ -12,7 +12,7 @@ from common.chackData import Goods, Order
 from common import response_utils
 from common.utils import get_name
 from ac_order.PAY.alipay import AliPay
-from ACShop.settings import ORDER_TIMEOUT, TIME_OUT_EXPRESS
+from ACShop.settings import ORDER_TIMEOUT, TIME_OUT_EXPRESS, ALIPAY_GETWAY
 from common.logg import Logger
 
 logger = Logger()
@@ -92,7 +92,7 @@ class OrderPayView(View):
                 out_trade_no=order_no,
                 total_amount=float(total_price)
             )
-            re_url = "https://openapi.alipaydev.com/gateway.do?{data}".format(data=url)
+            re_url = "{0}?{1}".format(ALIPAY_GETWAY, url)
             return re_url
         except Exception as e:
             logger.error(traceback.format_exc())

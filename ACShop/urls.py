@@ -28,7 +28,7 @@ def ceshi1(request):
     return render(request,'测试1.html')
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('acshop/admin/', admin.site.urls),
     url('^login/$', Login.as_view(), name='login'),
     url('^register/$', Register.as_view(), name='register'),
     url('^media/(?P<path>.*)', serve, {'document_root': settings.MEDIA_ROOT}),
